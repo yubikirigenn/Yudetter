@@ -1,0 +1,2 @@
+- [Orval path+query param collision](orval-params-collision.md) — endpoints with BOTH path params AND query params generate colliding *Params types in api-zod; remove query params from those endpoints.
+- [Clerk JIT sync security](clerk-jit-sync.md) — /users/sync must derive clerkId from verified server session (getAuth), never from request body.

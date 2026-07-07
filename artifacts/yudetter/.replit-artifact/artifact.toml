@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Yudetter"
+version = "1.0.0"
+id = "artifacts/yudetter"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21877
+
+[services.development]
+run = "pnpm --filter @workspace/yudetter run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/yudetter", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/yudetter/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21877"
+BASE_PATH = "/"

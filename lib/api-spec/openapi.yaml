@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Yudetter SNS API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: yudates
+    description: Yudate (post) operations
+  - name: users
+    description: User operations
+  - name: explore
+    description: Explore/search operations
+  - name: notifications
+    description: Notification operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,472 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── YUDATES ──────────────────────────────────────────────────────────────
+  /yudates:
+    get:
+      operationId: getTimeline
+      tags: [yudates]
+      summary: Get home timeline for authenticated user
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Timeline yudates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YudatePage"
+    post:
+      operationId: createYudate
+      tags: [yudates]
+      summary: Post a new yudate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/YudateInput"
+      responses:
+        "201":
+          description: Created yudate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Yudate"
+
+  /yudates/{id}:
+    get:
+      operationId: getYudate
+      tags: [yudates]
+      summary: Get a single yudate by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Yudate detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Yudate"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteYudate
+      tags: [yudates]
+      summary: Delete a yudate (author only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /yudates/{id}/like:
+    post:
+      operationId: likeYudate
+      tags: [yudates]
+      summary: Like a yudate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Like result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+    delete:
+      operationId: unlikeYudate
+      tags: [yudates]
+      summary: Unlike a yudate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Unlike result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /yudates/{id}/reyudate:
+    post:
+      operationId: reyudate
+      tags: [yudates]
+      summary: Reyudate (repost) a yudate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Reyudate result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+    delete:
+      operationId: unReyudate
+      tags: [yudates]
+      summary: Undo a reyudate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Un-reyudate result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /yudates/{id}/replies:
+    get:
+      operationId: getYudateReplies
+      tags: [yudates]
+      summary: Get replies to a yudate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Replies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YudatePage"
+    post:
+      operationId: replyToYudate
+      tags: [yudates]
+      summary: Reply to a yudate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReplyInput"
+      responses:
+        "201":
+          description: Reply yudate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Yudate"
+
+  # ── USERS ─────────────────────────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: getMe
+      tags: [users]
+      summary: Get current authenticated user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+    patch:
+      operationId: updateMe
+      tags: [users]
+      summary: Update own profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileUpdate"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users/sync:
+    post:
+      operationId: syncUser
+      tags: [users]
+      summary: Sync Clerk user into DB (JIT provisioning)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserSyncInput"
+      responses:
+        "200":
+          description: Synced user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+
+  /users/{username}:
+    get:
+      operationId: getUserProfile
+      tags: [users]
+      summary: Get a user profile by username
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "404":
+          description: Not found
+
+  /users/{username}/yudates:
+    get:
+      operationId: getUserYudates
+      tags: [users]
+      summary: Get yudates by a user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User yudates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YudatePage"
+
+  /users/{username}/likes:
+    get:
+      operationId: getUserLikes
+      tags: [users]
+      summary: Get yudates liked by a user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Liked yudates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YudatePage"
+
+  /users/{username}/follow:
+    post:
+      operationId: followUser
+      tags: [users]
+      summary: Follow a user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Follow result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+    delete:
+      operationId: unfollowUser
+      tags: [users]
+      summary: Unfollow a user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unfollow result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /users/{username}/followers:
+    get:
+      operationId: getFollowers
+      tags: [users]
+      summary: Get followers of a user
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Followers list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPage"
+
+  /users/{username}/following:
+    get:
+      operationId: getFollowing
+      tags: [users]
+      summary: Get users a user is following
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Following list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPage"
+
+  # ── EXPLORE ───────────────────────────────────────────────────────────────
+  /explore:
+    get:
+      operationId: getExplore
+      tags: [explore]
+      summary: Get trending and recent yudates for explore page
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Explore yudates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YudatePage"
+
+  /explore/search:
+    get:
+      operationId: search
+      tags: [explore]
+      summary: Search yudates and users
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [yudates, users, all]
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResults"
+
+  # ── NOTIFICATIONS ─────────────────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: getNotifications
+      tags: [notifications]
+      summary: Get notifications for current user
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPage"
+
+  /notifications/read:
+    post:
+      operationId: markNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: Marked read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActionResult"
+
+  /notifications/unread-count:
+    get:
+      operationId: getUnreadNotificationCount
+      tags: [notifications]
+      summary: Get count of unread notifications
+      responses:
+        "200":
+          description: Unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnreadCount"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +507,247 @@ components:
       required:
         - status
 
+    ActionResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
+
+    UnreadCount:
+      type: object
+      properties:
+        count:
+          type: integer
+      required:
+        - count
+
+    # ── USER ────────────────────────────────────────────────────────────────
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+        bio:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+        yudateCount:
+          type: integer
+        isFollowing:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - clerkId
+        - username
+        - displayName
+        - email
+        - followerCount
+        - followingCount
+        - yudateCount
+        - isFollowing
+        - createdAt
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+        bio:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+
+    UserSyncInput:
+      type: object
+      properties:
+        clerkId:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+      required:
+        - clerkId
+        - username
+        - displayName
+        - email
+
+    UserPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProfile"
+        nextCursor:
+          type: ["integer", "null"]
+      required:
+        - items
+
+    # ── YUDATE ──────────────────────────────────────────────────────────────
+    Yudate:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        author:
+          $ref: "#/components/schemas/UserProfile"
+        likeCount:
+          type: integer
+        reyudateCount:
+          type: integer
+        replyCount:
+          type: integer
+        isLiked:
+          type: boolean
+        isReyudated:
+          type: boolean
+        quotedYudate:
+          oneOf:
+            - $ref: "#/components/schemas/QuotedYudate"
+            - type: "null"
+        replyToId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - content
+        - author
+        - likeCount
+        - reyudateCount
+        - replyCount
+        - isLiked
+        - isReyudated
+        - createdAt
+
+    QuotedYudate:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        author:
+          $ref: "#/components/schemas/UserProfile"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - content
+        - author
+        - createdAt
+
+    YudateInput:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 280
+        quotedYudateId:
+          type: ["integer", "null"]
+      required:
+        - content
+
+    ReplyInput:
+      type: object
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 280
+      required:
+        - content
+
+    YudatePage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Yudate"
+        nextCursor:
+          type: ["integer", "null"]
+      required:
+        - items
+
+    # ── NOTIFICATION ─────────────────────────────────────────────────────────
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [like, reyudate, follow, quote, reply]
+        actor:
+          $ref: "#/components/schemas/UserProfile"
+        yudate:
+          oneOf:
+            - $ref: "#/components/schemas/Yudate"
+            - type: "null"
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - actor
+        - read
+        - createdAt
+
+    NotificationPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        nextCursor:
+          type: ["integer", "null"]
+      required:
+        - items
+
+    # ── SEARCH ───────────────────────────────────────────────────────────────
+    SearchResults:
+      type: object
+      properties:
+        yudates:
+          type: array
+          items:
+            $ref: "#/components/schemas/Yudate"
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserProfile"
+      required:
+        - yudates
+        - users
