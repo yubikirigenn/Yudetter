@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Image, Smile, MapPin } from "lucide-react";
 import { useCreateYudate, useReplyToYudate, useGetMe } from "@workspace/api-client-react";
+import type { Yudate, QuotedYudate } from "@workspace/api-client-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -9,17 +10,20 @@ import { useQueryClient } from "@tanstack/react-query";
 interface YudateComposerProps {
   replyToId?: number;
   quotedYudateId?: number;
+  /** Optional preview of the quoted yudate shown inside the composer */
+  quotedYudatePreview?: Yudate | QuotedYudate;
   placeholder?: string;
   onSuccess?: () => void;
   autoFocus?: boolean;
 }
 
-export default function YudateComposer({ 
-  replyToId, 
-  quotedYudateId, 
+export default function YudateComposer({
+  replyToId,
+  quotedYudateId,
+  quotedYudatePreview,
   placeholder = "いまどうしてる？",
   onSuccess,
-  autoFocus = false
+  autoFocus = false,
 }: YudateComposerProps) {
   const [content, setContent] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -34,15 +38,23 @@ export default function YudateComposer({
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
-      textareaRef.current.focus();
+      setTimeout(() => textareaRef.current?.focus(), 50);
     }
   }, [autoFocus]);
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setContent(e.target.value);
-    // Auto-resize textarea
     e.target.style.height = 'auto';
     e.target.style.height = `${e.target.scrollHeight}px`;
+  };
+
+  const invalidateFeeds = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/yudates'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/explore'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/explore/popular'] });
+    if (me?.username) {
+      queryClient.invalidateQueries({ queryKey: ['/api/users', me.username, 'yudates'] });
+    }
   };
 
   const handleSubmit = () => {
@@ -54,25 +66,21 @@ export default function YudateComposer({
           setContent("");
           if (textareaRef.current) textareaRef.current.style.height = 'auto';
           toast({ title: "返信しました" });
-          queryClient.invalidateQueries({ queryKey: ['/api/yudates'] });
+          invalidateFeeds();
           onSuccess?.();
         },
-        onError: () => {
-          toast({ title: "エラーが発生しました", variant: "destructive" });
-        }
+        onError: () => toast({ title: "エラーが発生しました", variant: "destructive" }),
       });
     } else {
       createMutation.mutate({ data: { content: content.trim(), quotedYudateId } }, {
         onSuccess: () => {
           setContent("");
           if (textareaRef.current) textareaRef.current.style.height = 'auto';
-          toast({ title: "ユデートを投稿しました" });
-          queryClient.invalidateQueries({ queryKey: ['/api/yudates'] });
+          toast({ title: quotedYudateId ? "引用リユデートしました" : "ユデートを投稿しました" });
+          invalidateFeeds();
           onSuccess?.();
         },
-        onError: () => {
-          toast({ title: "エラーが発生しました", variant: "destructive" });
-        }
+        onError: () => toast({ title: "エラーが発生しました", variant: "destructive" }),
       });
     }
   };
@@ -97,7 +105,22 @@ export default function YudateComposer({
           className="w-full bg-transparent text-xl outline-none resize-none placeholder:text-muted-foreground mt-2 mb-2 min-h-[60px]"
           maxLength={300}
         />
-        
+
+        {/* Quoted yudate preview */}
+        {quotedYudatePreview && (
+          <div className="border border-border rounded-xl p-3 mb-3 bg-secondary/20">
+            <div className="flex items-center gap-2 mb-1">
+              <Avatar className="w-4 h-4">
+                <AvatarImage src={quotedYudatePreview.author.avatarUrl || ''} />
+                <AvatarFallback className="text-[8px]">{quotedYudatePreview.author.displayName[0]}</AvatarFallback>
+              </Avatar>
+              <span className="font-bold text-sm">{quotedYudatePreview.author.displayName}</span>
+              <span className="text-muted-foreground text-sm">@{quotedYudatePreview.author.username}</span>
+            </div>
+            <p className="text-[14px] text-muted-foreground line-clamp-3">{quotedYudatePreview.content}</p>
+          </div>
+        )}
+
         <div className="flex justify-between items-center pt-3 border-t border-border/50">
           <div className="flex gap-1 text-primary">
             <button className="p-2 rounded-full hover:bg-primary/10 transition-colors disabled:opacity-50" disabled>
@@ -120,12 +143,12 @@ export default function YudateComposer({
                 <div className="w-px h-8 bg-border/50" />
               </>
             )}
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               disabled={!content.trim() || isOverLimit || isPending}
               className="rounded-full px-6 font-bold font-rounded"
             >
-              {replyToId ? "返信" : "ユデートする"}
+              {replyToId ? "返信" : quotedYudateId ? "引用する" : "ユデートする"}
             </Button>
           </div>
         </div>

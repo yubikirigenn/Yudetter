@@ -12,23 +12,22 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { data: me } = useGetMe();
   const [location] = useLocation();
 
-  // Show FAB only on pages where composing makes sense
   const showFab = location === "/" || location.startsWith("/profile");
 
   return (
     <div className="flex justify-center min-h-[100dvh] bg-background text-foreground selection:bg-primary/20">
       <div className="w-full max-w-[1280px] flex justify-between">
-        {/* Left Sidebar - Desktop/Tablet */}
-        <header className="hidden sm:flex flex-col w-[72px] xl:w-[275px] shrink-0 min-h-screen sticky top-0 px-2 xl:px-4 pb-4">
+        {/* Left Sidebar — sticky, exactly one screen tall */}
+        <header className="hidden sm:flex flex-col w-[72px] xl:w-[275px] shrink-0 h-screen sticky top-0 px-2 xl:px-4">
           <Sidebar me={me} />
         </header>
 
-        {/* Main Feed Content */}
+        {/* Main Feed */}
         <main className="flex-grow w-full max-w-[600px] border-l border-r border-border/50 min-h-[100dvh] pb-20 sm:pb-0">
           {children}
         </main>
 
-        {/* Right Sidebar - Desktop Only */}
+        {/* Right Sidebar — Desktop Only */}
         <aside className="hidden lg:block w-[350px] shrink-0 min-h-screen sticky top-0 pl-8 pr-4 py-4">
           <RightSidebar />
         </aside>
@@ -39,9 +38,12 @@ export default function Layout({ children }: { children: ReactNode }) {
         <MobileNav me={me} />
       </div>
 
-      {/* Mobile FAB - compose button */}
+      {/* Mobile FAB */}
       {showFab && (
-        <div className="sm:hidden fixed bottom-[72px] right-4 z-40" style={{ bottom: 'calc(56px + env(safe-area-inset-bottom) + 16px)' }}>
+        <div
+          className="sm:hidden fixed z-40"
+          style={{ bottom: 'calc(56px + env(safe-area-inset-bottom) + 16px)', right: '16px' }}
+        >
           <Dialog>
             <DialogTrigger asChild>
               <button
