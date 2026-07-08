@@ -7,8 +7,10 @@
  */
 
 export * from './actionResult';
+export * from './checkUsernameParams';
 export * from './getExploreParams';
 export * from './getNotificationsParams';
+export * from './getPopularParams';
 export * from './getTimelineParams';
 export * from './healthStatus';
 export * from './notification';
@@ -19,7 +21,9 @@ export * from './replyInput';
 export * from './searchParams';
 export * from './searchResults';
 export * from './searchType';
+export * from './setupProfileInput';
 export * from './unreadCount';
+export * from './usernameCheckResult';
 export * from './userPage';
 export * from './userProfile';
 export * from './userProfileUpdate';

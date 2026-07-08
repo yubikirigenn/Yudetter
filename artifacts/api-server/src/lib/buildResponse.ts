@@ -9,6 +9,8 @@ export type UserProfileShape = {
   email: string;
   bio: string | null;
   avatarUrl: string | null;
+  birthday: string | null;
+  setupComplete: boolean;
   followerCount: number;
   followingCount: number;
   yudateCount: number;
@@ -61,6 +63,8 @@ export async function buildUserProfile(
     email: user.email,
     bio: user.bio,
     avatarUrl: user.avatarUrl,
+    birthday: user.birthday ?? null,
+    setupComplete: user.setupComplete,
     followerCount: followerResult?.count ?? 0,
     followingCount: followingResult?.count ?? 0,
     yudateCount: yudateCountResult?.count ?? 0,

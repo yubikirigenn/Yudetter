@@ -16,6 +16,7 @@ import ExplorePage from '@/pages/explore';
 import NotificationsPage from '@/pages/notifications';
 import ProfilePage from '@/pages/profile';
 import YudateDetailPage from '@/pages/yudate-detail';
+import SetupPage from '@/pages/setup';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient({
@@ -109,12 +110,14 @@ function SignUpPage() {
   );
 }
 
+/** Syncs Clerk user to DB and redirects to /setup if profile is not yet complete */
 function UserSync() {
   const { user, isLoaded } = useUser();
   const syncMutation = useSyncUser();
+  const [location, setLocation] = useLocation();
   
   useEffect(() => {
-    if (isLoaded && user && !syncMutation.isSuccess) {
+    if (isLoaded && user && !syncMutation.isSuccess && !syncMutation.isPending) {
       syncMutation.mutate({
         data: {
           clerkId: user.id,
@@ -125,7 +128,17 @@ function UserSync() {
         }
       });
     }
-  }, [isLoaded, user, syncMutation.isSuccess, syncMutation.mutate]);
+  }, [isLoaded, user, syncMutation.isSuccess, syncMutation.isPending, syncMutation.mutate]);
+
+  // Redirect to /setup if sync succeeded and setup is not complete
+  useEffect(() => {
+    if (syncMutation.isSuccess && syncMutation.data) {
+      const profile = syncMutation.data as any;
+      if (!profile.setupComplete && location !== '/setup') {
+        setLocation('/setup');
+      }
+    }
+  }, [syncMutation.isSuccess, syncMutation.data, location, setLocation]);
   
   return null;
 }
@@ -195,6 +208,15 @@ function ClerkProviderWithRoutes() {
             <Route path="/sign-in/*?" component={SignInPage} />
             <Route path="/sign-up/*?" component={SignUpPage} />
             
+            <Route path="/setup">
+              <Show when="signed-in">
+                <SetupPage />
+              </Show>
+              <Show when="signed-out">
+                <Redirect to="/sign-in" />
+              </Show>
+            </Route>
+
             <Route path="/explore">
               <Layout><ExplorePage /></Layout>
             </Route>

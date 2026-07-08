@@ -1,7 +1,6 @@
 import { Link, useLocation } from "wouter";
-import { Home, Search, Bell, User, PenSquare } from "lucide-react";
+import { Home, Search, Bell, User } from "lucide-react";
 import type { UserProfile } from "@workspace/api-client-react";
-import { Button } from "./ui/button";
 
 export default function MobileNav({ me }: { me?: UserProfile }) {
   const [location] = useLocation();
@@ -14,15 +13,32 @@ export default function MobileNav({ me }: { me?: UserProfile }) {
   ];
 
   return (
-    <div className="flex justify-around items-center h-14 px-4">
+    <div className="flex justify-around items-center h-14">
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = location === item.path || (item.path !== "/" && location.startsWith(item.path));
-        
+        const isActive =
+          location === item.path ||
+          (item.path !== "/" && location.startsWith(item.path));
+
         return (
-          <Link key={item.name} href={item.path} className="flex flex-col items-center justify-center w-full h-full p-2">
-            <div className={`p-1.5 rounded-full transition-colors ${isActive ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-secondary'}`}>
-              <Icon className={`w-6 h-6 ${isActive ? 'fill-primary/20' : ''}`} strokeWidth={isActive ? 2.5 : 2} />
+          <Link
+            key={item.name}
+            href={item.path}
+            className="flex flex-col items-center justify-center flex-1 h-full py-2 gap-0.5 touch-manipulation"
+          >
+            <div
+              className={`p-2 rounded-full transition-colors ${
+                isActive
+                  ? "bg-primary/10 text-primary"
+                  : "text-foreground/70"
+              }`}
+            >
+              <Icon
+                className={`w-6 h-6 ${isActive ? "" : ""}`}
+                strokeWidth={isActive ? 2.5 : 2}
+                fill={isActive ? "currentColor" : "none"}
+                fillOpacity={isActive ? 0.15 : 0}
+              />
             </div>
           </Link>
         );

@@ -7,6 +7,9 @@
  */
 
 export interface UserProfile {
+  setupComplete: boolean;
+  /** @nullable */
+  birthday?: string | null;
   id: number;
   clerkId: string;
   username: string;

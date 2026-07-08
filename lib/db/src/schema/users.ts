@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -10,6 +10,8 @@ export const usersTable = pgTable("users", {
   email: text("email").unique().notNull(),
   bio: text("bio"),
   avatarUrl: text("avatar_url"),
+  birthday: text("birthday"), // YYYY-MM-DD, null until setup complete
+  setupComplete: boolean("setup_complete").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

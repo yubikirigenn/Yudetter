@@ -21,19 +21,23 @@ import type {
 
 import type {
   ActionResult,
+  CheckUsernameParams,
   GetExploreParams,
   GetNotificationsParams,
+  GetPopularParams,
   GetTimelineParams,
   HealthStatus,
   NotificationPage,
   ReplyInput,
   SearchParams,
   SearchResults,
+  SetupProfileInput,
   UnreadCount,
   UserPage,
   UserProfile,
   UserProfileUpdate,
   UserSyncInput,
+  UsernameCheckResult,
   Yudate,
   YudateInput,
   YudatePage
@@ -1019,6 +1023,160 @@ export const useUpdateMe = <TError = ErrorType<unknown>,
       return useMutation(getUpdateMeMutationOptions(options));
     }
 
+export const getSetupProfileUrl = () => {
+
+
+
+
+  return `/api/users/setup`
+}
+
+/**
+ * @summary Complete initial profile setup (username, displayName, birthday)
+ */
+export const setupProfile = async (setupProfileInput: SetupProfileInput, options?: RequestInit): Promise<UserProfile> => {
+
+  return customFetch<UserProfile>(getSetupProfileUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(setupProfileInput)
+  }
+);}
+
+
+
+
+export const getSetupProfileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupProfile>>, TError,{data: BodyType<SetupProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setupProfile>>, TError,{data: BodyType<SetupProfileInput>}, TContext> => {
+
+const mutationKey = ['setupProfile'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupProfile>>, {data: BodyType<SetupProfileInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupProfileMutationResult = NonNullable<Awaited<ReturnType<typeof setupProfile>>>
+    export type SetupProfileMutationBody = BodyType<SetupProfileInput>
+    export type SetupProfileMutationError = ErrorType<void>
+
+    /**
+ * @summary Complete initial profile setup (username, displayName, birthday)
+ */
+export const useSetupProfile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupProfile>>, TError,{data: BodyType<SetupProfileInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupProfile>>,
+        TError,
+        {data: BodyType<SetupProfileInput>},
+        TContext
+      > => {
+      return useMutation(getSetupProfileMutationOptions(options));
+    }
+
+export const getCheckUsernameUrl = (params: CheckUsernameParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/users/setup/check-username?${stringifiedParams}` : `/api/users/setup/check-username`
+}
+
+/**
+ * @summary Check if a username is available
+ */
+export const checkUsername = async (params: CheckUsernameParams, options?: RequestInit): Promise<UsernameCheckResult> => {
+
+  return customFetch<UsernameCheckResult>(getCheckUsernameUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getCheckUsernameQueryKey = (params?: CheckUsernameParams,) => {
+    return [
+    `/api/users/setup/check-username`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getCheckUsernameQueryOptions = <TData = Awaited<ReturnType<typeof checkUsername>>, TError = ErrorType<unknown>>(params: CheckUsernameParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof checkUsername>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getCheckUsernameQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof checkUsername>>> = ({ signal }) => checkUsername(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof checkUsername>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type CheckUsernameQueryResult = NonNullable<Awaited<ReturnType<typeof checkUsername>>>
+export type CheckUsernameQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Check if a username is available
+ */
+
+export function useCheckUsername<TData = Awaited<ReturnType<typeof checkUsername>>, TError = ErrorType<unknown>>(
+ params: CheckUsernameParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof checkUsername>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getCheckUsernameQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getSyncUserUrl = () => {
 
 
@@ -1602,6 +1760,90 @@ export function useGetFollowing<TData = Awaited<ReturnType<typeof getFollowing>>
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetFollowingQueryOptions(username,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPopularUrl = (params?: GetPopularParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/explore/popular?${stringifiedParams}` : `/api/explore/popular`
+}
+
+/**
+ * @summary Get popular yudates sorted by engagement
+ */
+export const getPopular = async (params?: GetPopularParams, options?: RequestInit): Promise<YudatePage> => {
+
+  return customFetch<YudatePage>(getGetPopularUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPopularQueryKey = (params?: GetPopularParams,) => {
+    return [
+    `/api/explore/popular`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPopularQueryOptions = <TData = Awaited<ReturnType<typeof getPopular>>, TError = ErrorType<unknown>>(params?: GetPopularParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPopular>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPopularQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPopular>>> = ({ signal }) => getPopular(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPopular>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPopularQueryResult = NonNullable<Awaited<ReturnType<typeof getPopular>>>
+export type GetPopularQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get popular yudates sorted by engagement
+ */
+
+export function useGetPopular<TData = Awaited<ReturnType<typeof getPopular>>, TError = ErrorType<unknown>>(
+ params?: GetPopularParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPopular>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPopularQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

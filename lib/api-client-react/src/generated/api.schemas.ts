@@ -18,6 +18,9 @@ export interface UnreadCount {
 }
 
 export interface UserProfile {
+  setupComplete: boolean;
+  /** @nullable */
+  birthday?: string | null;
   id: number;
   clerkId: string;
   username: string;
@@ -129,6 +132,26 @@ export interface NotificationPage {
   nextCursor?: number | null;
 }
 
+export interface SetupProfileInput {
+  /**
+     * @minLength 1
+     * @maxLength 30
+     */
+  username: string;
+  /**
+     * @minLength 1
+     * @maxLength 50
+     */
+  displayName: string;
+  birthday: string;
+}
+
+export interface UsernameCheckResult {
+  available: boolean;
+  /** @nullable */
+  error?: string | null;
+}
+
 export interface SearchResults {
   yudates: Yudate[];
   users: UserProfile[];
@@ -139,6 +162,17 @@ export type GetTimelineParams = {
  * @nullable
  */
 cursor?: number | null;
+/**
+ * @nullable
+ */
+limit?: number | null;
+};
+
+export type CheckUsernameParams = {
+username: string;
+};
+
+export type GetPopularParams = {
 /**
  * @nullable
  */

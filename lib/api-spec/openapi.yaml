@@ -253,6 +253,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserProfile"
 
+  /users/setup:
+    post:
+      operationId: setupProfile
+      tags: [users]
+      summary: Complete initial profile setup (username, displayName, birthday)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetupProfileInput"
+      responses:
+        "200":
+          description: Setup complete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          description: Unauthorized
+        "409":
+          description: Username taken
+
+  /users/setup/check-username:
+    get:
+      operationId: checkUsername
+      tags: [users]
+      summary: Check if a username is available
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Availability result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsernameCheckResult"
+
   /users/sync:
     post:
       operationId: syncUser
@@ -406,6 +448,24 @@ paths:
                 $ref: "#/components/schemas/UserPage"
 
   # ── EXPLORE ───────────────────────────────────────────────────────────────
+  /explore/popular:
+    get:
+      operationId: getPopular
+      tags: [explore]
+      summary: Get popular yudates sorted by engagement
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: Popular yudates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/YudatePage"
+
   /explore:
     get:
       operationId: getExplore
@@ -527,6 +587,10 @@ components:
     UserProfile:
       type: object
       properties:
+        setupComplete:
+          type: boolean
+        birthday:
+          type: ["string", "null"]
         id:
           type: integer
         clerkId:
@@ -562,6 +626,7 @@ components:
         - followingCount
         - yudateCount
         - isFollowing
+        - setupComplete
         - createdAt
 
     UserProfileUpdate:
@@ -735,6 +800,34 @@ components:
           type: ["integer", "null"]
       required:
         - items
+
+    SetupProfileInput:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 30
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 50
+        birthday:
+          type: string
+      required:
+        - username
+        - displayName
+        - birthday
+
+    UsernameCheckResult:
+      type: object
+      properties:
+        available:
+          type: boolean
+        error:
+          type: ["string", "null"]
+      required:
+        - available
 
     # ── SEARCH ───────────────────────────────────────────────────────────────
     SearchResults:

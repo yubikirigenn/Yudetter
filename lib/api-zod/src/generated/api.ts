@@ -29,6 +29,8 @@ export const GetTimelineResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -51,6 +53,8 @@ export const GetTimelineResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -89,6 +93,8 @@ export const CreateYudateResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -111,6 +117,8 @@ export const CreateYudateResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -142,6 +150,8 @@ export const GetYudateResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -164,6 +174,8 @@ export const GetYudateResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -254,6 +266,8 @@ export const GetYudateRepliesResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -276,6 +290,8 @@ export const GetYudateRepliesResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -317,6 +333,8 @@ export const ReplyToYudateResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -339,6 +357,8 @@ export const ReplyToYudateResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -363,6 +383,8 @@ export const ReplyToYudateResponse = zod.object({
  * @summary Get current authenticated user
  */
 export const GetMeResponse = zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -388,6 +410,8 @@ export const UpdateMeBody = zod.object({
 })
 
 export const UpdateMeResponse = zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -404,6 +428,52 @@ export const UpdateMeResponse = zod.object({
 
 
 /**
+ * @summary Complete initial profile setup (username, displayName, birthday)
+ */
+export const setupProfileBodyUsernameMax = 30;
+
+export const setupProfileBodyDisplayNameMax = 50;
+
+
+
+export const SetupProfileBody = zod.object({
+  "username": zod.string().min(1).max(setupProfileBodyUsernameMax),
+  "displayName": zod.string().min(1).max(setupProfileBodyDisplayNameMax),
+  "birthday": zod.string()
+})
+
+export const SetupProfileResponse = zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Check if a username is available
+ */
+export const CheckUsernameQueryParams = zod.object({
+  "username": zod.coerce.string()
+})
+
+export const CheckUsernameResponse = zod.object({
+  "available": zod.boolean(),
+  "error": zod.string().nullish()
+})
+
+
+/**
  * @summary Sync Clerk user into DB (JIT provisioning)
  */
 export const SyncUserBody = zod.object({
@@ -415,6 +485,8 @@ export const SyncUserBody = zod.object({
 })
 
 export const SyncUserResponse = zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -438,6 +510,8 @@ export const GetUserProfileParams = zod.object({
 })
 
 export const GetUserProfileResponse = zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -465,6 +539,8 @@ export const GetUserYudatesResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -487,6 +563,8 @@ export const GetUserYudatesResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -521,6 +599,8 @@ export const GetUserLikesResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -543,6 +623,8 @@ export const GetUserLikesResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -598,6 +680,8 @@ export const GetFollowersParams = zod.object({
 
 export const GetFollowersResponse = zod.object({
   "items": zod.array(zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -624,6 +708,8 @@ export const GetFollowingParams = zod.object({
 
 export const GetFollowingResponse = zod.object({
   "items": zod.array(zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -642,18 +728,19 @@ export const GetFollowingResponse = zod.object({
 
 
 /**
- * @summary Get trending and recent yudates for explore page
+ * @summary Get popular yudates sorted by engagement
  */
-export const GetExploreQueryParams = zod.object({
-  "cursor": zod.coerce.number().nullish(),
+export const GetPopularQueryParams = zod.object({
   "limit": zod.coerce.number().nullish()
 })
 
-export const GetExploreResponse = zod.object({
+export const GetPopularResponse = zod.object({
   "items": zod.array(zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -676,6 +763,69 @@ export const GetExploreResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "createdAt": zod.coerce.date()
+}),
+  "createdAt": zod.coerce.date()
+}),zod.null()]).optional(),
+  "replyToId": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "nextCursor": zod.number().nullish()
+})
+
+
+/**
+ * @summary Get trending and recent yudates for explore page
+ */
+export const GetExploreQueryParams = zod.object({
+  "cursor": zod.coerce.number().nullish(),
+  "limit": zod.coerce.number().nullish()
+})
+
+export const GetExploreResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "content": zod.string(),
+  "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "createdAt": zod.coerce.date()
+}),
+  "likeCount": zod.number(),
+  "reyudateCount": zod.number(),
+  "replyCount": zod.number(),
+  "isLiked": zod.boolean(),
+  "isReyudated": zod.boolean(),
+  "quotedYudate": zod.union([zod.object({
+  "id": zod.number(),
+  "content": zod.string(),
+  "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -711,6 +861,8 @@ export const SearchResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -733,6 +885,8 @@ export const SearchResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -752,6 +906,8 @@ export const SearchResponse = zod.object({
   "createdAt": zod.coerce.date()
 })),
   "users": zod.array(zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -780,6 +936,8 @@ export const GetNotificationsResponse = zod.object({
   "id": zod.number(),
   "type": zod.enum(['like', 'reyudate', 'follow', 'quote', 'reply']),
   "actor": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -797,6 +955,8 @@ export const GetNotificationsResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),
@@ -819,6 +979,8 @@ export const GetNotificationsResponse = zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
+  "setupComplete": zod.boolean(),
+  "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
   "username": zod.string(),

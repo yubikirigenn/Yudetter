@@ -1,10 +1,27 @@
 import { Router } from "express";
-import { desc, and, isNull, ilike, or, sql } from "drizzle-orm";
-import { db, yudatesTable, usersTable } from "@workspace/db";
+import { desc, and, isNull, ilike, or, sql, eq, count } from "drizzle-orm";
+import { db, yudatesTable, usersTable, likesTable } from "@workspace/db";
 import { optionalAuth } from "../lib/auth";
 import { buildYudatePage, buildUserProfile } from "../lib/buildResponse";
 
 const router = Router();
+
+// GET /explore/popular - popular yudates by like count
+router.get("/explore/popular", optionalAuth, async (req, res): Promise<void> => {
+  const limit = Math.min(Number(req.query.limit) || 20, 50);
+
+  const rows = await db
+    .select({ id: yudatesTable.id, likeCount: count(likesTable.yudateId) })
+    .from(yudatesTable)
+    .leftJoin(likesTable, eq(likesTable.yudateId, yudatesTable.id))
+    .where(isNull(yudatesTable.replyToId))
+    .groupBy(yudatesTable.id)
+    .orderBy(desc(count(likesTable.yudateId)), desc(yudatesTable.id))
+    .limit(limit);
+
+  const page = await buildYudatePage(rows.map((r) => r.id), req.dbUserId, null);
+  res.json(page);
+});
 
 // GET /explore - trending / recent public yudates
 router.get("/explore", optionalAuth, async (req, res): Promise<void> => {
