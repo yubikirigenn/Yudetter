@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, desc, and, isNull, lte, gt, or } from "drizzle-orm";
+import { eq, desc, and, isNull, lte, gt, or, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db, yudatesTable, likesTable, reyudatesTable, notificationsTable, usersTable, reactionsTable } from "@workspace/db";
 import {
@@ -306,14 +306,35 @@ router.get("/yudates/:id/replies", optionalAuth, async (req, res): Promise<void>
   const id = parseInt(raw, 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
 
-  const rows = await db
+  // 1. 直接の返信 (子リプライ)
+  const childRows = await db
     .select({ id: yudatesTable.id })
     .from(yudatesTable)
     .where(eq(yudatesTable.replyToId, id))
     .orderBy(desc(yudatesTable.superYudateAmount), desc(yudatesTable.id))
-    .limit(50);
+    .limit(30);
 
-  const page = await buildYudatePage(rows.map((r) => r.id), req.dbUserId, null);
+  const childIds = childRows.map((r) => r.id);
+
+  // 2. 子リプライに対する返信 (孫リプライ)
+  let grandChildIds: number[] = [];
+  if (childIds.length > 0) {
+    const grandChildRows = await db
+      .select({ id: yudatesTable.id })
+      .from(yudatesTable)
+      .where(inArray(yudatesTable.replyToId, childIds))
+      .orderBy(desc(yudatesTable.superYudateAmount), desc(yudatesTable.id))
+      .limit(30);
+    grandChildIds = grandChildRows.map((r) => r.id);
+  }
+
+  const allIds = Array.from(new Set([...childIds, ...grandChildIds]));
+  if (allIds.length === 0) {
+    res.json({ items: [] });
+    return;
+  }
+
+  const page = await buildYudatePage(allIds, req.dbUserId, null);
   res.json(page);
 });
 

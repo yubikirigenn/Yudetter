@@ -72,9 +72,33 @@ export default function YudateDetailPage() {
       <div className="flex flex-col">
         {repliesLoading ? (
           <div className="flex justify-center p-8 text-primary"><Loader2 className="w-8 h-8 animate-spin" /></div>
-        ) : replies?.items.length ? (
-          replies.items.map((reply) => <YudateCard key={reply.id} yudate={reply} />)
-        ) : (
+        ) : replies?.items.length ? (() => {
+          const childReplies = replies.items.filter(r => r.replyToId === yudate.id);
+          const grandReplies = replies.items.filter(r => r.replyToId !== yudate.id);
+
+          return childReplies.map((child) => {
+            const childGrands = grandReplies.filter(g => g.replyToId === child.id);
+
+            return (
+              <div key={child.id} className="border-b border-border/30">
+                <YudateCard yudate={child} />
+
+                {/* 孫リプライのツリー表示 */}
+                {childGrands.length > 0 && (
+                  <div className="pl-6 sm:pl-10 pb-3 bg-secondary/5 dark:bg-secondary/2">
+                    <div className="border-l-2 border-border/40 pl-3 sm:pl-4 flex flex-col gap-3 mt-1">
+                      {childGrands.map((grand) => (
+                        <div key={grand.id} className="relative">
+                          <YudateCard yudate={grand} isQuoted={false} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          });
+        })() : (
           null
         )}
       </div>
