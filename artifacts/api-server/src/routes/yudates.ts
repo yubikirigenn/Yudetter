@@ -107,6 +107,7 @@ router.post("/yudates", requireAuth, async (req, res): Promise<void> => {
       scheduledFor: parsed.data.scheduledFor ? new Date(parsed.data.scheduledFor) : null,
       autoDeleteAt: parsed.data.autoDeleteAt ? new Date(parsed.data.autoDeleteAt) : null,
       visibility: parsed.data.visibility ?? "public",
+      isSpoiler: parsed.data.isSpoiler ?? false,
     })
     .returning();
 
@@ -155,6 +156,19 @@ router.get("/yudates/:id", optionalAuth, async (req, res): Promise<void> => {
 
   const result = await buildYudate(id, req.dbUserId);
   if (!result) { res.status(404).json({ error: "Not found" }); return; }
+
+  const now = new Date();
+  if (result.author.id !== req.dbUserId) {
+    if (result.scheduledFor && new Date(result.scheduledFor) > now) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    if (result.autoDeleteAt && new Date(result.autoDeleteAt) <= now) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+  }
+
   res.json(result);
 });
 
@@ -372,10 +386,11 @@ router.post("/yudates/:id/replies", requireAuth, async (req, res): Promise<void>
     .insert(yudatesTable)
     .values({
       content: parsed.data.content,
-      imageUrl: null,
+      imageUrl: parsed.data.imageUrl ?? null,
       authorId: req.dbUserId!,
       replyToId: id,
       superYudateAmount: superAmount,
+      isSpoiler: parsed.data.isSpoiler ?? false,
     })
     .returning();
 

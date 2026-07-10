@@ -120,7 +120,13 @@ export const createYudateBodyContentMax = 280;
 
 export const CreateYudateBody = zod.object({
   "content": zod.string().min(1).max(createYudateBodyContentMax),
-  "quotedYudateId": zod.number().nullish()
+  "quotedYudateId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.string().nullish(),
+  "scheduledFor": zod.string().nullish(),
+  "autoDeleteAt": zod.string().nullish(),
+  "isSpoiler": zod.boolean().nullish(),
+  "superYudateAmount": zod.number().nullish()
 })
 
 export const CreateYudateResponse = zod.object({
@@ -460,7 +466,9 @@ export const replyToYudateBodyContentMax = 280;
 
 export const ReplyToYudateBody = zod.object({
   "content": zod.string().min(1).max(replyToYudateBodyContentMax),
-  "superYudateAmount": zod.number().optional()
+  "superYudateAmount": zod.number().optional(),
+  "imageUrl": zod.string().nullish(),
+  "isSpoiler": zod.boolean().nullish()
 })
 
 export const ReplyToYudateResponse = zod.object({

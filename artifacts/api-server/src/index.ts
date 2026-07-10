@@ -32,4 +32,25 @@ app.listen(port, (err) => {
     }, intervalMs);
     logger.info({ appUrl, intervalMs }, "Self-ping keep-alive initialized");
   }
+
+  // Auto-delete background job to physically clean up expired yudates from DB
+  const cleanupIntervalMs = 30 * 1000; // 30 seconds
+  setInterval(async () => {
+    try {
+      const { db, yudatesTable } = await import("@workspace/db");
+      const { lte } = await import("drizzle-orm");
+      const now = new Date();
+      const deletedRows = await db
+        .delete(yudatesTable)
+        .where(lte(yudatesTable.autoDeleteAt, now))
+        .returning({ id: yudatesTable.id });
+      
+      if (deletedRows.length > 0) {
+        logger.info({ count: deletedRows.length, ids: deletedRows.map(r => r.id) }, "Auto-deleted expired yudates successfully.");
+      }
+    } catch (err) {
+      logger.error({ err }, "Error in auto-delete background job");
+    }
+  }, cleanupIntervalMs);
+  logger.info({ cleanupIntervalMs }, "Auto-delete background job initialized");
 });
