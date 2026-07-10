@@ -25,6 +25,7 @@ import GamesPage from '@/pages/games';
 import GamePlayPage from '@/pages/game-play';
 import StudioPage from '@/pages/studio';
 import RankingsPage from '@/pages/rankings';
+import TermsPage from '@/pages/terms';
 import { useSession } from "@/lib/auth-client";
 import { useNotificationStream } from "@/hooks/use-notification-stream";
 
@@ -142,6 +143,7 @@ function AppWithRoutes() {
           <Route path="/" component={HomeRoute} />
           <Route path="/sign-in" component={SignInPage} />
           <Route path="/sign-up" component={SignUpPage} />
+          <Route path="/terms" component={TermsPage} />
           
           <Route path="/setup">
             <ProtectedRoute>
