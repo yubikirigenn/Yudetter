@@ -54,6 +54,7 @@ router.post("/upload", requireAuth, upload.single("file"), async (req, res): Pro
           method: "POST",
           headers: {
             "Authorization": `Bearer ${supabaseServiceKey}`,
+            "apikey": supabaseServiceKey,
             "Content-Type": file.mimetype,
             "x-upsert": "true",
           },

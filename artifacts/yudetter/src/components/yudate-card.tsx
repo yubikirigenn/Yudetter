@@ -153,8 +153,11 @@ const REACTION_EMOJIS: { emoji: string; label: string }[] = [
 
 /** Renders markdown + KaTeX safely */
 function MarkdownContent({ content, className }: { content: string; className?: string }) {
+  // Convert plain newlines to markdown-compatible newlines (two spaces + newline)
+  const formattedContent = (content || "").replace(/\n/g, "  \n");
+
   return (
-    <div className={`prose prose-sm dark:prose-invert max-w-none ${className || ''}`}>
+    <div className={`prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap ${className || ''}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
@@ -171,7 +174,7 @@ function MarkdownContent({ content, className }: { content: string; className?: 
           h3: ({ children }) => <h3 className="text-base font-semibold leading-tight mt-1.5 mb-0.5">{children}</h3>,
         }}
       >
-        {content}
+        {formattedContent}
       </ReactMarkdown>
     </div>
   );
@@ -1072,7 +1075,7 @@ export default function YudateCard({
                     <span className="font-bold">{yudate.author.displayName}</span>
                     <span className="text-muted-foreground">@{yudate.author.username}</span>
                   </div>
-                  <p className="mt-1 text-[15px]">{yudate.content}</p>
+                  <p className="mt-1 text-[15px] whitespace-pre-wrap">{yudate.content}</p>
                   <p className="text-muted-foreground text-sm mt-2">
                     返信先: <span className="text-primary">@{yudate.author.username}</span>
                   </p>
