@@ -234,12 +234,25 @@ router.get("/users/:username/likes", optionalAuth, async (req, res): Promise<voi
 router.post("/users/:username/follow", requireAuth, async (req, res): Promise<void> => {
   const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
 
-  const [target] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
+  const [target] = await db
+    .select({ id: usersTable.id, isPrivate: usersTable.isPrivate })
+    .from(usersTable)
+    .where(eq(usersTable.username, username))
+    .limit(1);
   if (!target) { res.status(404).json({ error: "User not found" }); return; }
   if (target.id === req.dbUserId) { res.status(400).json({ error: "Cannot follow yourself" }); return; }
 
   try {
-    await db.insert(followsTable).values({ followerId: req.dbUserId!, followingId: target.id });
+    const isPending = target.isPrivate;
+    const followStatus = isPending ? "pending" : "accepted";
+    const actionMessage = isPending ? "があなたにフォローリクエストを送信しました" : "があなたをフォローしました";
+
+    await db.insert(followsTable).values({
+      followerId: req.dbUserId!,
+      followingId: target.id,
+      status: followStatus,
+    });
+
     await db.insert(notificationsTable).values({
       userId: target.id,
       type: "follow",
@@ -249,10 +262,10 @@ router.post("/users/:username/follow", requireAuth, async (req, res): Promise<vo
     sseManager.notifyUser(target.id, {
       type: "follow",
       actorName: req.user?.name || "誰か",
-      actionMessage: "があなたをフォローしました",
+      actionMessage,
     });
   } catch {
-    // already following
+    // already following or request pending
   }
   res.json({ success: true });
 });
