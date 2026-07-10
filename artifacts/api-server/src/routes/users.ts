@@ -117,7 +117,10 @@ router.get("/users/:username/yudates", optionalAuth, async (req, res): Promise<v
 
   const now = new Date();
   
-  let conditions = [eq(yudatesTable.authorId, user.id)];
+  let conditions = [
+    eq(yudatesTable.authorId, user.id),
+    isNull(yudatesTable.replyToId)
+  ];
   
   if (req.dbUserId !== user.id) {
     conditions.push(or(isNull(yudatesTable.scheduledFor), lte(yudatesTable.scheduledFor, now)));

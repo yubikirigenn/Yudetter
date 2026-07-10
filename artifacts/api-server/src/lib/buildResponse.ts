@@ -57,6 +57,7 @@ export type QuotedYudateShape = {
   content: string;
   imageUrl: string | null;
   author: UserProfileShape;
+  superYudateAmount: number;
   createdAt: string;
 };
 
@@ -273,6 +274,7 @@ export async function buildYudatePage(
             content: qy.content,
             imageUrl: qy.imageUrl ?? null,
             author: qAuthor,
+            superYudateAmount: qy.superYudateAmount ?? 0,
             createdAt: qy.createdAt.toISOString(),
           };
         }

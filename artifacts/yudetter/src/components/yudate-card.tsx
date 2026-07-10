@@ -659,8 +659,8 @@ export default function YudateCard({
   };
 
   const timeAgo = formatRelativeTime(new Date(yudate.createdAt));
-
-  const hasSuper = isFullYudate && yudate.superYudateAmount > 0;
+ 
+  const hasSuper = yudate.superYudateAmount !== undefined && yudate.superYudateAmount !== null && yudate.superYudateAmount > 0;
   const superStyle = hasSuper
     ? yudate.superYudateAmount >= 5000 ? "border-amber-500/80 bg-amber-500/5 dark:bg-amber-500/10 border-2 rounded-2xl" :
       yudate.superYudateAmount >= 1000 ? "border-pink-500/60 bg-pink-500/5 dark:bg-pink-500/10 border rounded-xl" :
@@ -668,14 +668,20 @@ export default function YudateCard({
       yudate.superYudateAmount >= 100 ? "border-teal-500/40 bg-teal-500/5 dark:bg-teal-500/10 border rounded-xl" :
       "border-blue-500/30 bg-blue-500/5 dark:bg-blue-500/10 border rounded-xl"
     : "";
-
+ 
   return (
     <article
-      onClick={!isQuoted ? handleNavigate : undefined}
+      onClick={(e) => {
+        if (isQuoted) {
+          e.stopPropagation();
+        }
+        handleNavigate(e);
+      }}
       className={`
         relative border-b border-border/50 bg-background transition-all overflow-hidden
-        ${!isQuoted && !isDetail ? 'cursor-pointer hover:bg-secondary/20' : ''}
-        ${isQuoted ? 'border rounded-xl mt-3 mx-0 hover:bg-secondary/40 overflow-hidden p-3' : hasSuper ? 'p-0' : 'p-4'}
+        ${!isDetail ? 'cursor-pointer hover:bg-secondary/20' : ''}
+        ${isQuoted ? 'border rounded-xl mt-3 mx-0 overflow-hidden shadow-sm hover:border-border/80' : ''}
+        ${!isQuoted && hasSuper ? 'p-0' : !isQuoted ? 'p-4' : hasSuper ? 'p-0' : 'p-3'}
         ${isDetail ? 'text-lg px-4 pt-4 pb-2' : ''}
         ${superStyle}
       `}
@@ -693,8 +699,8 @@ export default function YudateCard({
           <span className="ml-auto font-black text-xs tracking-wider">{yudate.superYudateAmount.toLocaleString()} YD</span>
         </div>
       )}
-
-      <div className={`flex gap-3 ${hasSuper ? 'p-4' : ''} ${isQuoted ? 'p-0' : ''}`}>
+ 
+      <div className={`flex gap-3 ${!isQuoted && hasSuper ? 'p-4' : isQuoted && hasSuper ? 'p-3' : isQuoted ? 'p-0' : ''}`}>
         {!isQuoted && (
           <Link href={`/profile/${yudate.author.username}`} className="shrink-0 z-10">
             <Avatar className="w-10 h-10 sm:w-12 sm:h-12 border border-border/50 hover:opacity-90 transition-opacity">
