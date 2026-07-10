@@ -301,8 +301,8 @@ export default function YudateComposer({
           )}
         </div>
 
-        <div className="flex justify-between items-center pt-3 border-t border-border/50">
-          <div className="flex gap-1 text-primary relative">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-3 border-t border-border/50 gap-3">
+          <div className="flex flex-wrap gap-1 text-primary relative max-w-full overflow-x-auto py-0.5">
             {isUploading ? (
               <div className="p-2">
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -473,7 +473,7 @@ export default function YudateComposer({
             </Popover>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-end gap-4 shrink-0 ml-auto sm:ml-0">
             {content.length > 0 && (
               <>
                 <div className={`text-sm font-medium ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
@@ -487,6 +487,7 @@ export default function YudateComposer({
               disabled={(!content.trim() && !imageUrl) || isOverLimit || isPending || isUploading}
               className="rounded-full px-6 font-bold font-rounded"
             >
+              {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               {replyToId ? "返信" : quotedYudateId ? "引用する" : (scheduledFor ? "予約する" : "ユデートする")}
             </Button>
           </div>
