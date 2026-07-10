@@ -89,7 +89,7 @@ export async function buildUserProfile(
     displayName: user.displayName,
     email: user.email,
     bio: user.bio,
-    avatarUrl: user.avatarUrl,
+    avatarUrl: user.avatarUrl || user.image || null,
     headerUrl: user.headerUrl ?? null,
     birthday: user.birthday ?? null,
     setupComplete: user.setupComplete,
