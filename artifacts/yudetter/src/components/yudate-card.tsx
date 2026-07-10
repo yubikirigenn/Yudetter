@@ -154,7 +154,23 @@ const REACTION_EMOJIS: { emoji: string; label: string }[] = [
 /** Renders markdown + KaTeX safely */
 function MarkdownContent({ content, className }: { content: string; className?: string }) {
   // Convert plain newlines to markdown-compatible newlines (two spaces + newline)
-  const formattedContent = (content || "").replace(/\n/g, "  \n");
+  let formattedContent = (content || "").replace(/\n/g, "  \n");
+
+  // 1. Auto-link hashtags (e.g. #tag -> [#tag](/explore?q=%23tag))
+  formattedContent = formattedContent.replace(
+    /(^|\s)#([^\s#@.,!?:;'"“”‘’()\[\]{}&|~^*+=\-\\/<>`]+)/g,
+    (match, space, tag) => {
+      return `${space}[#${tag}](/explore?q=${encodeURIComponent('#' + tag)})`;
+    }
+  );
+
+  // 2. Auto-link mentions (e.g. @user -> [@user](/profile/user))
+  formattedContent = formattedContent.replace(
+    /(^|\s)@([a-zA-Z0-9_]+)/g,
+    (match, space, username) => {
+      return `${space}[@${username}](/profile/${username})`;
+    }
+  );
 
   return (
     <div className={`prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap ${className || ''}`}>
@@ -162,12 +178,22 @@ function MarkdownContent({ content, className }: { content: string; className?: 
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
         components={{
-          // Open links in new tab
-          a: ({ children, href }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-              {children}
-            </a>
-          ),
+          // Use wouter Link for app-internal routing (hashtags/mentions), normal a tag for external
+          a: ({ children, href }) => {
+            const isInternal = href?.startsWith("/");
+            if (isInternal) {
+              return (
+                <Link href={href} className="text-primary hover:underline font-bold">
+                  {children}
+                </Link>
+              );
+            }
+            return (
+              <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                {children}
+              </a>
+            );
+          },
           // 見出し（カード内でも視覚的に区別できるサイズ）
           h1: ({ children }) => <h1 className="text-xl font-bold leading-tight mt-2 mb-1">{children}</h1>,
           h2: ({ children }) => <h2 className="text-lg font-bold leading-tight mt-2 mb-1">{children}</h2>,
