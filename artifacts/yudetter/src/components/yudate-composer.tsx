@@ -212,7 +212,7 @@ export default function YudateComposer({
           value={content}
           onChange={handleInput}
           placeholder={placeholder}
-          className="w-full bg-transparent text-xl outline-none resize-none placeholder:text-muted-foreground mt-2 mb-2 min-h-[60px]"
+          className="w-full bg-transparent text-xl outline-none resize-none placeholder:text-muted-foreground mt-2 mb-2 min-h-[120px]"
           maxLength={300}
         />
 

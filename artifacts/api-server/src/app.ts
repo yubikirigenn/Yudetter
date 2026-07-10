@@ -64,4 +64,18 @@ app.use((req, res, next) => {
   });
 });
 
+// Global JSON error handler for API routes
+app.use((err: any, req: any, res: any, next: any) => {
+  logger.error({ err }, "Unhandled API error");
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const statusCode = err.status || err.statusCode || 500;
+  res.status(statusCode).json({
+    error: err.message || "サーバー内部エラーが発生しました。"
+  });
+});
+
 export default app;

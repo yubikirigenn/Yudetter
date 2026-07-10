@@ -70,12 +70,21 @@ export default function MobileNav({ me }: { me?: UserProfile }) {
             <Plus className="w-6 h-6" strokeWidth={3} />
           </button>
         </DialogTrigger>
-        <DialogContent className="w-[92vw] max-w-[500px] p-0 border-none bg-transparent shadow-none top-[30%] translate-y-[-30%]">
-          <div className="bg-background rounded-2xl overflow-hidden border border-border shadow-xl">
-            <div className="px-4 pt-3 pb-1 border-b border-border/30">
-              <span className="text-sm font-medium text-muted-foreground">新しいユデート</span>
+        <DialogContent className="w-full h-[100dvh] sm:h-auto sm:w-[92vw] sm:max-w-[500px] p-0 border-none bg-background sm:rounded-2xl sm:overflow-hidden sm:border sm:border-border sm:shadow-xl flex flex-col">
+          <div className="flex-grow flex flex-col bg-background h-full overflow-hidden">
+            <div className="px-4 py-3.5 border-b border-border/30 flex items-center justify-between shrink-0">
+              <span className="text-sm font-bold text-foreground">新しいユデート</span>
+              <button 
+                type="button"
+                onClick={() => setIsComposerOpen(false)}
+                className="text-xs font-bold text-muted-foreground hover:text-foreground px-3 py-1.5 bg-secondary/80 rounded-full sm:hidden"
+              >
+                キャンセル
+              </button>
             </div>
-            <YudateComposer autoFocus onSuccess={() => setIsComposerOpen(false)} />
+            <div className="flex-1 overflow-y-auto pb-8">
+              <YudateComposer autoFocus onSuccess={() => setIsComposerOpen(false)} />
+            </div>
           </div>
         </DialogContent>
       </Dialog>
