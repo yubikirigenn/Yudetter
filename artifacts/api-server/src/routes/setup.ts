@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, usersTable } from "@workspace/db";
-import { getAuth } from "@clerk/express";
 import { z } from "zod";
 import { buildUserProfile } from "../lib/buildResponse";
+import { requireAuth } from "../lib/auth";
 
 const router = Router();
 
@@ -20,14 +20,7 @@ const SetupBody = z.object({
 });
 
 // POST /users/setup - first-time profile setup
-router.post("/users/setup", async (req, res): Promise<void> => {
-  const auth = getAuth(req);
-  const verifiedClerkId = auth?.userId;
-  if (!verifiedClerkId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
+router.post("/users/setup", requireAuth, async (req, res): Promise<void> => {
   const parsed = SetupBody.safeParse(req.body);
   if (!parsed.success) {
     const firstError = parsed.error.issues[0]?.message ?? "入力内容が正しくありません";
@@ -38,7 +31,7 @@ router.post("/users/setup", async (req, res): Promise<void> => {
   const [currentUser] = await db
     .select()
     .from(usersTable)
-    .where(eq(usersTable.clerkId, verifiedClerkId))
+    .where(eq(usersTable.id, req.dbUserId!))
     .limit(1);
 
   if (!currentUser) {
@@ -82,7 +75,7 @@ router.post("/users/setup", async (req, res): Promise<void> => {
 });
 
 // GET /users/setup/check-username?username=...
-router.get("/users/setup/check-username", async (req, res): Promise<void> => {
+router.get("/users/setup/check-username", requireAuth, async (req, res): Promise<void> => {
   const username = (req.query.username as string)?.trim();
   if (!username) {
     res.json({ available: false, error: "ユーザーIDを入力してください" });
@@ -93,21 +86,28 @@ router.get("/users/setup/check-username", async (req, res): Promise<void> => {
     return;
   }
 
-  const auth = getAuth(req);
-  const verifiedClerkId = auth?.userId;
+  const [currentUser] = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.dbUserId!))
+    .limit(1);
 
-  const [currentUser] = verifiedClerkId
-    ? await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.clerkId, verifiedClerkId)).limit(1)
-    : [null];
+  if (!currentUser) {
+    res.json({ available: false, error: "ユーザーが見つかりません" });
+    return;
+  }
 
   const [taken] = await db
     .select({ id: usersTable.id })
     .from(usersTable)
-    .where(eq(usersTable.username, username))
+    .where(sql`lower(${usersTable.username}) = lower(${username})`)
     .limit(1);
 
-  const available = !taken || (currentUser != null && taken.id === currentUser.id);
-  res.json({ available, error: available ? null : "このユーザーIDはすでに使われています" });
+  if (taken && taken.id !== currentUser.id) {
+    res.json({ available: false, error: "このユーザーIDはすでに使われています" });
+  } else {
+    res.json({ available: true });
+  }
 });
 
 export default router;

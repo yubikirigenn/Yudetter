@@ -17,8 +17,23 @@ export interface UnreadCount {
   count: number;
 }
 
+export type UserProfileVisibility = typeof UserProfileVisibility[keyof typeof UserProfileVisibility];
+
+
+export const UserProfileVisibility = {
+  public: 'public',
+  followers: 'followers',
+} as const;
+
 export interface UserProfile {
   setupComplete: boolean;
+  isPrivate: boolean;
+  isBlocking: boolean;
+  isBlockedBy: boolean;
+  /** @nullable */
+  pinnedYudateId?: number | null;
+  /** @nullable */
+  headerUrl?: string | null;
   /** @nullable */
   birthday?: string | null;
   id: number;
@@ -34,7 +49,15 @@ export interface UserProfile {
   followingCount: number;
   yudateCount: number;
   isFollowing: boolean;
+  isFollowPending: boolean;
   createdAt: string;
+  visibility?: UserProfileVisibility;
+  isSpoiler?: boolean;
+  yudedollar: number;
+  /** @nullable */
+  badgeType?: string | null;
+  consecutiveLoginDays: number;
+  rankingOptIn: boolean;
 }
 
 export interface UserProfileUpdate {
@@ -43,6 +66,9 @@ export interface UserProfileUpdate {
   bio?: string | null;
   /** @nullable */
   avatarUrl?: string | null;
+  /** @nullable */
+  headerUrl?: string | null;
+  isPrivate?: boolean;
 }
 
 export interface UserSyncInput {
@@ -60,11 +86,25 @@ export interface UserPage {
   nextCursor?: number | null;
 }
 
+export type YudateVisibility = typeof YudateVisibility[keyof typeof YudateVisibility];
+
+
+export const YudateVisibility = {
+  public: 'public',
+  followers: 'followers',
+} as const;
+
 export interface QuotedYudate {
   id: number;
   content: string;
   author: UserProfile;
   createdAt: string;
+}
+
+export interface YudateReaction {
+  emoji: string;
+  count: number;
+  isReacted: boolean;
 }
 
 export interface Yudate {
@@ -79,6 +119,12 @@ export interface Yudate {
   quotedYudate?: QuotedYudate | null;
   /** @nullable */
   replyToId?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
+  visibility?: YudateVisibility;
+  isSpoiler?: boolean;
+  reactions?: YudateReaction[];
+  superYudateAmount: number;
   createdAt: string;
 }
 
@@ -98,6 +144,7 @@ export interface ReplyInput {
      * @maxLength 280
      */
   content: string;
+  superYudateAmount?: number;
 }
 
 export interface YudatePage {
@@ -157,15 +204,133 @@ export interface SearchResults {
   users: UserProfile[];
 }
 
+export interface ReactionInput {
+  emoji: string;
+}
+
+export interface UploadResult {
+  url: string;
+}
+
+export interface YdTransaction {
+  id: number;
+  userId: number;
+  amount: number;
+  type: string;
+  description: string;
+  /** @nullable */
+  referenceId?: number | null;
+  createdAt: string;
+}
+
+export type MarketItemItemType = typeof MarketItemItemType[keyof typeof MarketItemItemType];
+
+
+export const MarketItemItemType = {
+  image: 'image',
+  audio: 'audio',
+  game: 'game',
+  user_id: 'user_id',
+} as const;
+
+export type MarketItemSaleType = typeof MarketItemSaleType[keyof typeof MarketItemSaleType];
+
+
+export const MarketItemSaleType = {
+  normal: 'normal',
+  auction: 'auction',
+} as const;
+
+export type MarketItemStatus = typeof MarketItemStatus[keyof typeof MarketItemStatus];
+
+
+export const MarketItemStatus = {
+  selling: 'selling',
+  sold: 'sold',
+  reserved: 'reserved',
+  completed: 'completed',
+} as const;
+
+export interface MarketItem {
+  id: number;
+  seller: UserProfile;
+  /** @nullable */
+  buyer?: UserProfile | null;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  itemType: MarketItemItemType;
+  itemData: string;
+  /** @nullable */
+  thumbnailUrl?: string | null;
+  price: number;
+  saleType: MarketItemSaleType;
+  status: MarketItemStatus;
+  /** @nullable */
+  auctionEndAt?: string | null;
+  /** @nullable */
+  highestBid?: number | null;
+  /** @nullable */
+  highestBidder?: UserProfile | null;
+  /** @nullable */
+  buyoutPrice?: number | null;
+  createdAt: string;
+  updatedAt: string;
+  likeCount: number;
+  commentCount: number;
+  isLiked: boolean;
+}
+
+export interface MarketComment {
+  id: number;
+  itemId: number;
+  user: UserProfile;
+  comment: string;
+  createdAt: string;
+}
+
+export interface Game {
+  id: number;
+  creator: UserProfile;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  htmlContent?: string | null;
+  playPrice: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserProfileScore {
+  user: UserProfile;
+  score: number;
+}
+
+export type RankingsDaily = {
+  post: UserProfileScore[];
+  follower: UserProfileScore[];
+};
+
+export type RankingsWeekly = {
+  post: UserProfileScore[];
+  follower: UserProfileScore[];
+};
+
+export type RankingsAllTime = {
+  post: UserProfileScore[];
+  follower: UserProfileScore[];
+};
+
+export interface Rankings {
+  daily: RankingsDaily;
+  weekly: RankingsWeekly;
+  allTime: RankingsAllTime;
+}
+
 export type GetTimelineParams = {
-/**
- * @nullable
- */
-cursor?: number | null;
-/**
- * @nullable
- */
-limit?: number | null;
+cursor?: number;
+limit?: number;
 };
 
 export type CheckUsernameParams = {
@@ -173,21 +338,12 @@ username: string;
 };
 
 export type GetPopularParams = {
-/**
- * @nullable
- */
-limit?: number | null;
+limit?: number;
 };
 
 export type GetExploreParams = {
-/**
- * @nullable
- */
-cursor?: number | null;
-/**
- * @nullable
- */
-limit?: number | null;
+cursor?: number;
+limit?: number;
 };
 
 export type SearchParams = {
@@ -202,12 +358,103 @@ export const SearchType = {
   yudates: 'yudates',
   users: 'users',
   all: 'all',
+  latest: 'latest',
+  popular: 'popular',
+  oldest: 'oldest',
 } as const;
 
 export type GetNotificationsParams = {
-/**
- * @nullable
- */
-cursor?: number | null;
+cursor?: number;
+};
+
+export type GetMarketItemsParams = {
+type?: GetMarketItemsType;
+status?: GetMarketItemsStatus;
+};
+
+export type GetMarketItemsType = typeof GetMarketItemsType[keyof typeof GetMarketItemsType];
+
+
+export const GetMarketItemsType = {
+  image: 'image',
+  game: 'game',
+  user_id: 'user_id',
+} as const;
+
+export type GetMarketItemsStatus = typeof GetMarketItemsStatus[keyof typeof GetMarketItemsStatus];
+
+
+export const GetMarketItemsStatus = {
+  selling: 'selling',
+  sold: 'sold',
+  reserved: 'reserved',
+  completed: 'completed',
+} as const;
+
+export type CreateMarketItemBodyItemType = typeof CreateMarketItemBodyItemType[keyof typeof CreateMarketItemBodyItemType];
+
+
+export const CreateMarketItemBodyItemType = {
+  image: 'image',
+  audio: 'audio',
+  game: 'game',
+  user_id: 'user_id',
+} as const;
+
+export type CreateMarketItemBodySaleType = typeof CreateMarketItemBodySaleType[keyof typeof CreateMarketItemBodySaleType];
+
+
+export const CreateMarketItemBodySaleType = {
+  normal: 'normal',
+  auction: 'auction',
+} as const;
+
+export type CreateMarketItemBody = {
+  title: string;
+  description?: string;
+  itemType: CreateMarketItemBodyItemType;
+  itemData: string;
+  price: number;
+  saleType: CreateMarketItemBodySaleType;
+  auctionDurationDays?: number;
+  thumbnailUrl?: string;
+  buyoutPrice?: number;
+};
+
+export type PurchaseMarketItemBody = {
+  bidAmount?: number;
+};
+
+export type PurchaseMarketItem200 = {
+  success: boolean;
+  message?: string;
+};
+
+export type CreateMarketItemCommentBody = {
+  comment: string;
+};
+
+export type CreateGameBody = {
+  title: string;
+  description?: string;
+  htmlContent: string;
+  playPrice?: number;
+};
+
+export type UpdateGameBody = {
+  title: string;
+  description?: string;
+  htmlContent: string;
+  playPrice?: number;
+};
+
+export type ChargeGamePaymentBody = {
+  amount: number;
+  description: string;
+};
+
+export type ChargeGamePayment200 = {
+  success: boolean;
+  transactionId?: number;
 };
 

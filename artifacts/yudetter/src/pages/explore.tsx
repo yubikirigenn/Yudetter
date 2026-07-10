@@ -1,30 +1,51 @@
 import { useState, useEffect } from "react";
-import { useSearch, useGetExplore } from "@workspace/api-client-react";
+import { useSearch, useGetExploreInfinite } from "@workspace/api-client-react";
 import { Search as SearchIcon, Loader2 } from "lucide-react";
 import YudateCard from "@/components/yudate-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import InfiniteScrollObserver from "@/components/infinite-scroll-observer";
+import { Link } from "wouter";
+
+type SearchTabType = 'latest' | 'popular' | 'oldest' | 'users';
 
 export default function ExplorePage() {
   const searchParams = new URLSearchParams(window.location.search);
   const initialQuery = searchParams.get('q') || "";
   
   const [query, setQuery] = useState(initialQuery);
-  const [activeTab, setActiveTab] = useState<'yudates' | 'users'>('yudates');
+  const [activeTab, setActiveTab] = useState<SearchTabType>('latest');
 
   // Update query if URL changes
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
 
-  const { data: searchData, isLoading: isSearchLoading } = useSearch(
-    { q: query, type: 'all' },
-    { query: { enabled: query.length > 0, queryKey: ['/api/search', { q: query, type: 'all' }] } }
+  const { data: searchDataRaw, isLoading: isSearchLoading } = useSearch(
+    { q: query, type: activeTab as any },
+    { query: { enabled: query.length > 0, queryKey: ['/api/search', { q: query, type: activeTab }] } }
   );
 
-  const { data: exploreData, isLoading: isExploreLoading } = useGetExplore(
+  const searchData = searchDataRaw as any;
+
+  const { 
+    data: exploreDataRaw, 
+    isLoading: isExploreLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useGetExploreInfinite(
     undefined,
-    { query: { enabled: !query, queryKey: ['/api/explore'] } }
+    { 
+      query: { 
+        enabled: !query, 
+        queryKey: ['/api/explore'],
+        getNextPageParam: (lastPage: any) => lastPage.nextCursor ?? null,
+        initialPageParam: null as any,
+      } 
+    }
   );
+
+  const exploreItems = (exploreDataRaw as any)?.pages?.flatMap((p: any) => p.items || []) || [];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +55,16 @@ export default function ExplorePage() {
       window.history.replaceState(null, '', `/explore`);
     }
   };
+
+  const searchYudates = searchData?.yudates || [];
+  const searchUsers = searchData?.users || [];
+
+  const tabItems: { id: SearchTabType; label: string }[] = [
+    { id: 'latest', label: '最新' },
+    { id: 'popular', label: '人気順' },
+    { id: 'oldest', label: '古い順' },
+    { id: 'users', label: 'ユーザー' },
+  ];
 
   return (
     <div className="w-full">
@@ -54,21 +85,21 @@ export default function ExplorePage() {
         </form>
 
         {query && (
-          <div className="flex">
-            <button 
-              onClick={() => setActiveTab('yudates')}
-              className={`flex-1 font-bold text-center p-4 hover:bg-secondary transition-colors relative`}
-            >
-              <span className={activeTab === 'yudates' ? 'text-foreground' : 'text-muted-foreground'}>ユデート</span>
-              {activeTab === 'yudates' && <div className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-primary rounded-t-full" />}
-            </button>
-            <button 
-              onClick={() => setActiveTab('users')}
-              className={`flex-1 font-bold text-center p-4 hover:bg-secondary transition-colors relative`}
-            >
-              <span className={activeTab === 'users' ? 'text-foreground' : 'text-muted-foreground'}>ユーザー</span>
-              {activeTab === 'users' && <div className="absolute bottom-0 left-1/4 right-1/4 h-1 bg-primary rounded-t-full" />}
-            </button>
+          <div className="flex border-b border-border/20">
+            {tabItems.map((tab) => (
+              <button 
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 font-bold text-center py-3.5 hover:bg-secondary transition-colors relative text-sm sm:text-base`}
+              >
+                <span className={activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground'}>
+                  {tab.label}
+                </span>
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-4 right-4 h-1 bg-primary rounded-t-full" />
+                )}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -78,8 +109,15 @@ export default function ExplorePage() {
           // Explore Feed
           isExploreLoading ? (
             <div className="flex justify-center p-8 text-primary"><Loader2 className="w-8 h-8 animate-spin" /></div>
-          ) : exploreData?.items.length ? (
-            exploreData.items.map((yudate) => <YudateCard key={yudate.id} yudate={yudate} />)
+          ) : exploreItems.length ? (
+            <>
+              {exploreItems.map((yudate: any) => <YudateCard key={yudate.id} yudate={yudate} />)}
+              <InfiniteScrollObserver 
+                hasNextPage={!!hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                fetchNextPage={fetchNextPage}
+              />
+            </>
           ) : (
             <div className="p-8 text-center text-muted-foreground">コンテンツがありません</div>
           )
@@ -87,28 +125,32 @@ export default function ExplorePage() {
           // Search Results
           isSearchLoading ? (
             <div className="flex justify-center p-8 text-primary"><Loader2 className="w-8 h-8 animate-spin" /></div>
-          ) : activeTab === 'yudates' ? (
-            searchData?.yudates.length ? (
-              searchData.yudates.map((yudate) => <YudateCard key={yudate.id} yudate={yudate} />)
+          ) : activeTab !== 'users' ? (
+            searchYudates.length ? (
+              searchYudates.map((yudate: any) => <YudateCard key={yudate.id} yudate={yudate} />)
             ) : (
               <div className="p-8 text-center text-muted-foreground font-bold">「{query}」の検索結果はありません</div>
             )
           ) : (
-            searchData?.users.length ? (
-              searchData.users.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-4 border-b border-border/50 hover:bg-secondary/20 cursor-pointer" onClick={() => window.location.href = `/profile/${user.username}`}>
+            searchUsers.length ? (
+              searchUsers.map((user: any) => (
+                <Link 
+                  key={user.id} 
+                  href={`/profile/${user.username}`} 
+                  className="flex items-center justify-between p-4 border-b border-border/50 hover:bg-secondary/20 cursor-pointer block"
+                >
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={user.avatarUrl || ''} />
                       <AvatarFallback className="bg-primary/20 text-primary font-bold">{user.displayName[0]}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-bold">{user.displayName}</div>
+                      <div className="font-bold text-foreground">{user.displayName}</div>
                       <div className="text-sm text-muted-foreground">@{user.username}</div>
-                      {user.bio && <div className="text-sm mt-1">{user.bio}</div>}
+                      {user.bio && <div className="text-sm mt-1 text-foreground">{user.bio}</div>}
                     </div>
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               <div className="p-8 text-center text-muted-foreground font-bold">ユーザーが見つかりません</div>

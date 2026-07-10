@@ -7,7 +7,6 @@
  */
 import * as zod from 'zod';
 
-
 /**
  * @summary Health check
  */
@@ -19,9 +18,11 @@ export const HealthCheckResponse = zod.object({
 /**
  * @summary Get home timeline for authenticated user
  */
+export const getTimelineQueryCursorDefault = 0;
+
 export const GetTimelineQueryParams = zod.object({
-  "cursor": zod.coerce.number().nullish(),
-  "limit": zod.coerce.number().nullish()
+  "cursor": zod.coerce.number().default(getTimelineQueryCursorDefault),
+  "limit": zod.coerce.number().optional()
 })
 
 export const GetTimelineResponse = zod.object({
@@ -30,6 +31,11 @@ export const GetTimelineResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -42,7 +48,14 @@ export const GetTimelineResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -54,6 +67,11 @@ export const GetTimelineResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -66,11 +84,27 @@ export const GetTimelineResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })),
   "nextCursor": zod.number().nullish()
@@ -94,6 +128,11 @@ export const CreateYudateResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -106,7 +145,14 @@ export const CreateYudateResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -118,6 +164,11 @@ export const CreateYudateResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -130,11 +181,27 @@ export const CreateYudateResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })
 
@@ -151,6 +218,11 @@ export const GetYudateResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -163,7 +235,14 @@ export const GetYudateResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -175,6 +254,11 @@ export const GetYudateResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -187,11 +271,27 @@ export const GetYudateResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })
 
@@ -267,6 +367,11 @@ export const GetYudateRepliesResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -279,7 +384,14 @@ export const GetYudateRepliesResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -291,6 +403,11 @@ export const GetYudateRepliesResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -303,11 +420,27 @@ export const GetYudateRepliesResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })),
   "nextCursor": zod.number().nullish()
@@ -326,7 +459,8 @@ export const replyToYudateBodyContentMax = 280;
 
 
 export const ReplyToYudateBody = zod.object({
-  "content": zod.string().min(1).max(replyToYudateBodyContentMax)
+  "content": zod.string().min(1).max(replyToYudateBodyContentMax),
+  "superYudateAmount": zod.number().optional()
 })
 
 export const ReplyToYudateResponse = zod.object({
@@ -334,6 +468,11 @@ export const ReplyToYudateResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -346,7 +485,14 @@ export const ReplyToYudateResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -358,6 +504,11 @@ export const ReplyToYudateResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -370,11 +521,27 @@ export const ReplyToYudateResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })
 
@@ -384,6 +551,11 @@ export const ReplyToYudateResponse = zod.object({
  */
 export const GetMeResponse = zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -396,7 +568,14 @@ export const GetMeResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 })
 
 
@@ -406,11 +585,18 @@ export const GetMeResponse = zod.object({
 export const UpdateMeBody = zod.object({
   "displayName": zod.string().optional(),
   "bio": zod.string().nullish(),
-  "avatarUrl": zod.string().nullish()
+  "avatarUrl": zod.string().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "isPrivate": zod.boolean().optional()
 })
 
 export const UpdateMeResponse = zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -423,7 +609,14 @@ export const UpdateMeResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 })
 
 
@@ -444,6 +637,11 @@ export const SetupProfileBody = zod.object({
 
 export const SetupProfileResponse = zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -456,7 +654,14 @@ export const SetupProfileResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 })
 
 
@@ -486,6 +691,11 @@ export const SyncUserBody = zod.object({
 
 export const SyncUserResponse = zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -498,7 +708,14 @@ export const SyncUserResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 })
 
 
@@ -511,6 +728,11 @@ export const GetUserProfileParams = zod.object({
 
 export const GetUserProfileResponse = zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -523,7 +745,14 @@ export const GetUserProfileResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 })
 
 
@@ -540,6 +769,11 @@ export const GetUserYudatesResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -552,7 +786,14 @@ export const GetUserYudatesResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -564,6 +805,11 @@ export const GetUserYudatesResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -576,11 +822,27 @@ export const GetUserYudatesResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })),
   "nextCursor": zod.number().nullish()
@@ -600,6 +862,11 @@ export const GetUserLikesResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -612,7 +879,14 @@ export const GetUserLikesResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -624,6 +898,11 @@ export const GetUserLikesResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -636,15 +915,85 @@ export const GetUserLikesResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })),
   "nextCursor": zod.number().nullish()
 })
+
+
+/**
+ * @summary Get pending follow requests
+ */
+export const GetFollowRequestsResponseItem = zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+})
+export const GetFollowRequestsResponse = zod.array(GetFollowRequestsResponseItem)
+
+
+/**
+ * @summary Approve follow request
+ */
+export const ApproveFollowRequestParams = zod.object({
+  "username": zod.coerce.string()
+})
+
+export const ApproveFollowRequestResponse = zod.unknown()
+
+
+/**
+ * @summary Reject follow request
+ */
+export const RejectFollowRequestParams = zod.object({
+  "username": zod.coerce.string()
+})
+
+export const RejectFollowRequestResponse = zod.unknown()
 
 
 /**
@@ -681,6 +1030,11 @@ export const GetFollowersParams = zod.object({
 export const GetFollowersResponse = zod.object({
   "items": zod.array(zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -693,7 +1047,14 @@ export const GetFollowersResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 })),
   "nextCursor": zod.number().nullish()
 })
@@ -709,6 +1070,11 @@ export const GetFollowingParams = zod.object({
 export const GetFollowingResponse = zod.object({
   "items": zod.array(zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -721,7 +1087,14 @@ export const GetFollowingResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 })),
   "nextCursor": zod.number().nullish()
 })
@@ -731,7 +1104,7 @@ export const GetFollowingResponse = zod.object({
  * @summary Get popular yudates sorted by engagement
  */
 export const GetPopularQueryParams = zod.object({
-  "limit": zod.coerce.number().nullish()
+  "limit": zod.coerce.number().optional()
 })
 
 export const GetPopularResponse = zod.object({
@@ -740,6 +1113,11 @@ export const GetPopularResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -752,7 +1130,14 @@ export const GetPopularResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -764,6 +1149,11 @@ export const GetPopularResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -776,11 +1166,27 @@ export const GetPopularResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })),
   "nextCursor": zod.number().nullish()
@@ -790,9 +1196,11 @@ export const GetPopularResponse = zod.object({
 /**
  * @summary Get trending and recent yudates for explore page
  */
+export const getExploreQueryCursorDefault = 0;
+
 export const GetExploreQueryParams = zod.object({
-  "cursor": zod.coerce.number().nullish(),
-  "limit": zod.coerce.number().nullish()
+  "cursor": zod.coerce.number().default(getExploreQueryCursorDefault),
+  "limit": zod.coerce.number().optional()
 })
 
 export const GetExploreResponse = zod.object({
@@ -801,6 +1209,11 @@ export const GetExploreResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -813,7 +1226,14 @@ export const GetExploreResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -825,6 +1245,11 @@ export const GetExploreResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -837,11 +1262,27 @@ export const GetExploreResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })),
   "nextCursor": zod.number().nullish()
@@ -853,7 +1294,7 @@ export const GetExploreResponse = zod.object({
  */
 export const SearchQueryParams = zod.object({
   "q": zod.coerce.string(),
-  "type": zod.enum(['yudates', 'users', 'all']).optional()
+  "type": zod.enum(['yudates', 'users', 'all', 'latest', 'popular', 'oldest']).optional()
 })
 
 export const SearchResponse = zod.object({
@@ -862,6 +1303,11 @@ export const SearchResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -874,7 +1320,14 @@ export const SearchResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -886,6 +1339,11 @@ export const SearchResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -898,15 +1356,36 @@ export const SearchResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 })),
   "users": zod.array(zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -919,7 +1398,14 @@ export const SearchResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }))
 })
 
@@ -927,8 +1413,10 @@ export const SearchResponse = zod.object({
 /**
  * @summary Get notifications for current user
  */
+export const getNotificationsQueryCursorDefault = 0;
+
 export const GetNotificationsQueryParams = zod.object({
-  "cursor": zod.coerce.number().nullish()
+  "cursor": zod.coerce.number().default(getNotificationsQueryCursorDefault)
 })
 
 export const GetNotificationsResponse = zod.object({
@@ -937,6 +1425,11 @@ export const GetNotificationsResponse = zod.object({
   "type": zod.enum(['like', 'reyudate', 'follow', 'quote', 'reply']),
   "actor": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -949,13 +1442,25 @@ export const GetNotificationsResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "yudate": zod.union([zod.object({
   "id": zod.number(),
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -968,7 +1473,14 @@ export const GetNotificationsResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "likeCount": zod.number(),
   "reyudateCount": zod.number(),
@@ -980,6 +1492,11 @@ export const GetNotificationsResponse = zod.object({
   "content": zod.string(),
   "author": zod.object({
   "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
   "birthday": zod.string().nullish(),
   "id": zod.number(),
   "clerkId": zod.string(),
@@ -992,11 +1509,27 @@ export const GetNotificationsResponse = zod.object({
   "followingCount": zod.number(),
   "yudateCount": zod.number(),
   "isFollowing": zod.boolean(),
-  "createdAt": zod.coerce.date()
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
 }),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "replyToId": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "reactions": zod.array(zod.object({
+  "emoji": zod.string(),
+  "count": zod.number(),
+  "isReacted": zod.boolean()
+})).optional(),
+  "superYudateAmount": zod.number(),
   "createdAt": zod.coerce.date()
 }),zod.null()]).optional(),
   "read": zod.boolean(),
@@ -1022,3 +1555,920 @@ export const GetUnreadNotificationCountResponse = zod.object({
 })
 
 
+/**
+ * @summary Get Yudedollar transaction history
+ */
+export const GetWalletHistoryResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "amount": zod.number(),
+  "type": zod.string(),
+  "description": zod.string(),
+  "referenceId": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const GetWalletHistoryResponse = zod.array(GetWalletHistoryResponseItem)
+
+
+/**
+ * @summary Get list of market items
+ */
+export const GetMarketItemsQueryParams = zod.object({
+  "type": zod.enum(['image', 'game', 'user_id']).optional(),
+  "status": zod.enum(['selling', 'sold', 'reserved', 'completed']).optional()
+})
+
+export const GetMarketItemsResponseItem = zod.object({
+  "id": zod.number(),
+  "seller": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "buyer": zod.union([zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),zod.null()]).nullish(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "itemType": zod.enum(['image', 'audio', 'game', 'user_id']),
+  "itemData": zod.string(),
+  "thumbnailUrl": zod.string().nullish(),
+  "price": zod.number(),
+  "saleType": zod.enum(['normal', 'auction']),
+  "status": zod.enum(['selling', 'sold', 'reserved', 'completed']),
+  "auctionEndAt": zod.coerce.date().nullish(),
+  "highestBid": zod.number().nullish(),
+  "highestBidder": zod.union([zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),zod.null()]).nullish(),
+  "buyoutPrice": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "isLiked": zod.boolean()
+})
+export const GetMarketItemsResponse = zod.array(GetMarketItemsResponseItem)
+
+
+/**
+ * @summary Create a new market item
+ */
+export const CreateMarketItemBody = zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "itemType": zod.enum(['image', 'audio', 'game', 'user_id']),
+  "itemData": zod.string(),
+  "price": zod.number(),
+  "saleType": zod.enum(['normal', 'auction']),
+  "auctionDurationDays": zod.number().optional(),
+  "thumbnailUrl": zod.string().optional(),
+  "buyoutPrice": zod.number().optional()
+})
+
+export const CreateMarketItemResponse = zod.object({
+  "id": zod.number(),
+  "seller": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "buyer": zod.union([zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),zod.null()]).nullish(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "itemType": zod.enum(['image', 'audio', 'game', 'user_id']),
+  "itemData": zod.string(),
+  "thumbnailUrl": zod.string().nullish(),
+  "price": zod.number(),
+  "saleType": zod.enum(['normal', 'auction']),
+  "status": zod.enum(['selling', 'sold', 'reserved', 'completed']),
+  "auctionEndAt": zod.coerce.date().nullish(),
+  "highestBid": zod.number().nullish(),
+  "highestBidder": zod.union([zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),zod.null()]).nullish(),
+  "buyoutPrice": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "isLiked": zod.boolean()
+})
+
+
+/**
+ * @summary Get a single market item by ID
+ */
+export const GetMarketItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetMarketItemResponse = zod.object({
+  "id": zod.number(),
+  "seller": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "buyer": zod.union([zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),zod.null()]).nullish(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "itemType": zod.enum(['image', 'audio', 'game', 'user_id']),
+  "itemData": zod.string(),
+  "thumbnailUrl": zod.string().nullish(),
+  "price": zod.number(),
+  "saleType": zod.enum(['normal', 'auction']),
+  "status": zod.enum(['selling', 'sold', 'reserved', 'completed']),
+  "auctionEndAt": zod.coerce.date().nullish(),
+  "highestBid": zod.number().nullish(),
+  "highestBidder": zod.union([zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),zod.null()]).nullish(),
+  "buyoutPrice": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date(),
+  "likeCount": zod.number(),
+  "commentCount": zod.number(),
+  "isLiked": zod.boolean()
+})
+
+
+/**
+ * @summary Buy a market item or place a bid
+ */
+export const PurchaseMarketItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PurchaseMarketItemBody = zod.object({
+  "bidAmount": zod.number().optional()
+})
+
+export const PurchaseMarketItemResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string().optional()
+})
+
+
+/**
+ * @summary Like a market item
+ */
+export const LikeMarketItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const LikeMarketItemResponse = zod.unknown()
+
+
+/**
+ * @summary Unlike a market item
+ */
+export const UnlikeMarketItemParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UnlikeMarketItemResponse = zod.unknown()
+
+
+/**
+ * @summary Get comments for a market item
+ */
+export const GetMarketItemCommentsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetMarketItemCommentsResponseItem = zod.object({
+  "id": zod.number(),
+  "itemId": zod.number(),
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "comment": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const GetMarketItemCommentsResponse = zod.array(GetMarketItemCommentsResponseItem)
+
+
+/**
+ * @summary Add a comment to a market item
+ */
+export const CreateMarketItemCommentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateMarketItemCommentBody = zod.object({
+  "comment": zod.string()
+})
+
+export const CreateMarketItemCommentResponse = zod.object({
+  "id": zod.number(),
+  "itemId": zod.number(),
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "comment": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Apply purchased user ID to own account
+ */
+export const ClaimPurchasedIdParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ClaimPurchasedIdResponse = zod.unknown()
+
+
+/**
+ * @summary Get list of YGS games
+ */
+export const GetGamesResponseItem = zod.object({
+  "id": zod.number(),
+  "creator": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "htmlContent": zod.string().nullish(),
+  "playPrice": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const GetGamesResponse = zod.array(GetGamesResponseItem)
+
+
+/**
+ * @summary Create and publish a new game
+ */
+export const CreateGameBody = zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "htmlContent": zod.string(),
+  "playPrice": zod.number().optional()
+})
+
+export const CreateGameResponse = zod.object({
+  "id": zod.number(),
+  "creator": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "htmlContent": zod.string().nullish(),
+  "playPrice": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Get a single game by ID
+ */
+export const GetGameParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetGameResponse = zod.object({
+  "id": zod.number(),
+  "creator": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "htmlContent": zod.string().nullish(),
+  "playPrice": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Update a game by ID
+ */
+export const UpdateGameParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateGameBody = zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "htmlContent": zod.string(),
+  "playPrice": zod.number().optional()
+})
+
+export const UpdateGameResponse = zod.object({
+  "id": zod.number(),
+  "creator": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "htmlContent": zod.string().nullish(),
+  "playPrice": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Process in-game YD payment
+ */
+export const ChargeGamePaymentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ChargeGamePaymentBody = zod.object({
+  "amount": zod.number(),
+  "description": zod.string()
+})
+
+export const ChargeGamePaymentResponse = zod.object({
+  "success": zod.boolean(),
+  "transactionId": zod.number().optional()
+})
+
+
+/**
+ * @summary Get current rankings
+ */
+export const GetRankingsResponse = zod.object({
+  "daily": zod.object({
+  "post": zod.array(zod.object({
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "score": zod.number()
+})),
+  "follower": zod.array(zod.object({
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "score": zod.number()
+}))
+}),
+  "weekly": zod.object({
+  "post": zod.array(zod.object({
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "score": zod.number()
+})),
+  "follower": zod.array(zod.object({
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "score": zod.number()
+}))
+}),
+  "allTime": zod.object({
+  "post": zod.array(zod.object({
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "score": zod.number()
+})),
+  "follower": zod.array(zod.object({
+  "user": zod.object({
+  "setupComplete": zod.boolean(),
+  "isPrivate": zod.boolean(),
+  "isBlocking": zod.boolean(),
+  "isBlockedBy": zod.boolean(),
+  "pinnedYudateId": zod.number().nullish(),
+  "headerUrl": zod.string().nullish(),
+  "birthday": zod.string().nullish(),
+  "id": zod.number(),
+  "clerkId": zod.string(),
+  "username": zod.string(),
+  "displayName": zod.string(),
+  "email": zod.string(),
+  "bio": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "followerCount": zod.number(),
+  "followingCount": zod.number(),
+  "yudateCount": zod.number(),
+  "isFollowing": zod.boolean(),
+  "isFollowPending": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "visibility": zod.enum(['public', 'followers']).optional(),
+  "isSpoiler": zod.boolean().optional(),
+  "yudedollar": zod.number(),
+  "badgeType": zod.string().nullish(),
+  "consecutiveLoginDays": zod.number(),
+  "rankingOptIn": zod.boolean()
+}),
+  "score": zod.number()
+}))
+})
+})
+
+
+/**
+ * @summary Join the ranking system
+ */
+export const OptInRankingsResponse = zod.unknown()
+
+
+/**
+ * @summary Leave the ranking system
+ */
+export const OptOutRankingsResponse = zod.unknown()

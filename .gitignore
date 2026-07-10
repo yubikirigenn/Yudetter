@@ -47,3 +47,18 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# local env
+.env
+.env.*
+.env.local
+
+# uploads
+artifacts/uploads/
+uploads/
+
+# scratch files
+scratch_*
+reset_yudates.js
+reset_yudates.ts
+database_deadlock_report.txt

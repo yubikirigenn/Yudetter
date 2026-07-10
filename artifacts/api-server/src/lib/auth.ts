@@ -1,13 +1,11 @@
 import { type Request, type Response, type NextFunction } from "express";
-import { getAuth } from "@clerk/express";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { auth } from "./better-auth";
 
 declare global {
   namespace Express {
     interface Request {
       dbUserId?: number;
-      clerkUserId?: string;
+      user?: any;
     }
   }
 }
@@ -17,28 +15,17 @@ export const requireAuth = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const auth = getAuth(req);
-  const clerkUserId = auth?.userId;
+  const session = await auth.api.getSession({
+    headers: req.headers,
+  });
 
-  if (!clerkUserId) {
+  if (!session || !session.user) {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
 
-  // Look up the DB user from clerkId
-  const [user] = await db
-    .select({ id: usersTable.id })
-    .from(usersTable)
-    .where(eq(usersTable.clerkId, clerkUserId))
-    .limit(1);
-
-  if (!user) {
-    res.status(401).json({ error: "User not found. Please sync your account." });
-    return;
-  }
-
-  req.clerkUserId = clerkUserId;
-  req.dbUserId = user.id;
+  req.dbUserId = Number(session.user.id);
+  req.user = session.user;
   next();
 };
 
@@ -47,20 +34,12 @@ export const optionalAuth = async (
   _res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const auth = getAuth(req);
-  const clerkUserId = auth?.userId;
+  const session = await auth.api.getSession({
+    headers: req.headers,
+  });
 
-  if (clerkUserId) {
-    const [user] = await db
-      .select({ id: usersTable.id })
-      .from(usersTable)
-      .where(eq(usersTable.clerkId, clerkUserId))
-      .limit(1);
-
-    if (user) {
-      req.clerkUserId = clerkUserId;
-      req.dbUserId = user.id;
-    }
+  if (session && session.user) {
+    req.dbUserId = Number(session.user.id);
   }
 
   next();

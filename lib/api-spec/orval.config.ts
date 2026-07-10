@@ -30,6 +30,11 @@ export default defineConfig({
       clean: true,
       prettier: true,
       override: {
+        query: {
+          version: 5,
+          useInfinite: true,
+          useInfiniteQueryParam: "cursor",
+        },
         fetch: {
           includeHttpResponseReturnType: false,
         },
@@ -50,9 +55,8 @@ export default defineConfig({
     output: {
       workspace: apiZodSrc,
       client: "zod",
-      target: "generated",
-      schemas: { path: "generated/types", type: "typescript" },
-      mode: "split",
+      target: "generated/api.ts",
+      mode: "single",
       clean: true,
       prettier: true,
       override: {

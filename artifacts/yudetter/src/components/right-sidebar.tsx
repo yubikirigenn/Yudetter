@@ -1,16 +1,35 @@
 import { Search } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+
+interface TrendItem {
+  topic: string;
+  posts: string;
+}
 
 export default function RightSidebar() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
+
+  const { data: trends = [], isLoading } = useQuery<TrendItem[]>({
+    queryKey: ["/api/explore/trends"],
+    queryFn: async () => {
+      const res = await fetch("/api/explore/trends");
+      if (!res.ok) throw new Error();
+      return res.json();
+    }
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) {
       setLocation(`/explore?q=${encodeURIComponent(search.trim())}`);
     }
+  };
+
+  const handleTrendClick = (topic: string) => {
+    setLocation(`/explore?q=${encodeURIComponent(topic)}`);
   };
 
   return (
@@ -33,18 +52,23 @@ export default function RightSidebar() {
       <div className="bg-secondary/40 rounded-2xl p-4 border border-border/50">
         <h2 className="font-rounded font-bold text-xl mb-4">おすすめのトレンド</h2>
         <div className="flex flex-col gap-4">
-          {[
-            { topic: "React", posts: "1.2万" },
-            { topic: "TypeScript", posts: "8,400" },
-            { topic: "Yudetter開発", posts: "3,200" },
-            { topic: "UI/UX", posts: "1,500" }
-          ].map((item, i) => (
-            <div key={i} className="cursor-pointer hover:bg-secondary/80 -mx-4 px-4 py-2 transition-colors">
-              <p className="text-sm text-muted-foreground mb-0.5">日本のトレンド</p>
-              <p className="font-bold">{item.topic}</p>
-              <p className="text-sm text-muted-foreground mt-0.5">{item.posts} ユデート</p>
-            </div>
-          ))}
+          {isLoading ? (
+            <div className="text-sm text-muted-foreground">読み込み中...</div>
+          ) : trends.length === 0 ? (
+            <div className="text-sm text-muted-foreground">トレンドはありません</div>
+          ) : (
+            trends.map((item, i) => (
+              <div
+                key={i}
+                onClick={() => handleTrendClick(item.topic)}
+                className="cursor-pointer hover:bg-secondary/80 -mx-4 px-4 py-2 transition-colors"
+              >
+                <p className="text-sm text-muted-foreground mb-0.5">日本のトレンド</p>
+                <p className="font-bold">{item.topic}</p>
+                <p className="text-sm text-muted-foreground mt-0.5">{item.posts} ユデート</p>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

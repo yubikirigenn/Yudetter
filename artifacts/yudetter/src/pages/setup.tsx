@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/react";
+import { useSession } from "@/lib/auth-client";
 import { useLocation } from "wouter";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,9 @@ async function setupProfile(data: {
 }
 
 export default function SetupPage() {
-  const { user, isLoaded } = useUser();
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
+  const isLoaded = !isPending;
   const [, setLocation] = useLocation();
 
   const [username, setUsername] = useState("");
@@ -43,10 +45,10 @@ export default function SetupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Pre-fill display name from Clerk
+  // Pre-fill display name from Better Auth
   useEffect(() => {
     if (isLoaded && user) {
-      if (user.fullName) setDisplayName(user.fullName);
+      if (user.name) setDisplayName(user.name);
     }
   }, [isLoaded, user]);
 
@@ -117,7 +119,9 @@ export default function SetupPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <img src={`${BASE}/logo.svg`} alt="Yudetter" className="w-16 h-16" />
+          <div className="w-16 h-16 rounded-full overflow-hidden border border-border flex items-center justify-center shadow-sm bg-background">
+            <img src={`${BASE}/logo.png`} alt="Yudetter" className="w-full h-full object-cover scale-[1.3]" />
+          </div>
         </div>
 
         <div className="bg-card rounded-2xl border border-border p-8 shadow-sm">

@@ -1,13 +1,7 @@
 import app from "./app";
 import { logger } from "./lib/logger";
 
-const rawPort = process.env["PORT"];
-
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
+const rawPort = process.env["PORT"] || "6543";
 
 const port = Number(rawPort);
 
@@ -22,4 +16,20 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  // Keep-alive self-ping for Render free tier
+  const appUrl = process.env.APP_URL;
+  if (appUrl) {
+    const intervalMs = 10 * 60 * 1000; // 10 minutes
+    setInterval(() => {
+      fetch(`${appUrl.replace(/\/$/, "")}/api/health`)
+        .then((res) => {
+          logger.info({ status: res.status, url: appUrl }, "Self-ping keep-alive successful");
+        })
+        .catch((err) => {
+          logger.error({ err, url: appUrl }, "Self-ping keep-alive failed");
+        });
+    }, intervalMs);
+    logger.info({ appUrl, intervalMs }, "Self-ping keep-alive initialized");
+  }
 });

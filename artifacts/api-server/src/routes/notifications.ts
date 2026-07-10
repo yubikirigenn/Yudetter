@@ -3,8 +3,22 @@ import { eq, desc, and, lt } from "drizzle-orm";
 import { db, notificationsTable, usersTable, yudatesTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
 import { buildUserProfile, buildYudate } from "../lib/buildResponse";
+import { sseManager } from "../lib/sse";
 
 const router = Router();
+
+// GET /notifications/stream (SSE)
+router.get("/notifications/stream", requireAuth, (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  // Send an initial heartbeat
+  res.write(":\n\n");
+
+  sseManager.addClient(req.dbUserId!, res);
+});
 
 // GET /notifications
 router.get("/notifications", requireAuth, async (req, res): Promise<void> => {

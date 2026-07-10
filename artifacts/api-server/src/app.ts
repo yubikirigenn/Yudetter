@@ -1,13 +1,9 @@
 import express, { type Express } from "express";
+import path from "path";
 import cors from "cors";
 import pinoHttp from "pino-http";
-import { clerkMiddleware } from "@clerk/express";
-import { publishableKeyFromHost } from "@clerk/shared/keys";
-import {
-  CLERK_PROXY_PATH,
-  clerkProxyMiddleware,
-  getClerkProxyHost,
-} from "./middlewares/clerkProxyMiddleware";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./lib/better-auth";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -33,22 +29,39 @@ app.use(
   }),
 );
 
-// Clerk proxy must be mounted before body parsers (streams raw bytes)
-app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
-
 app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+// Better Auth ハンドラーをマウント
+app.use("/api/auth", toNodeHandler(auth));
 
 app.use("/api", router);
+
+// Chrome DevToolsのデバッグ用自動リクエストを正常終了させてコンソールエラーを抑制
+app.get("/.well-known/appspecific/com.chrome.devtools.json", (req, res) => {
+  res.setHeader("Content-Security-Policy", "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;");
+  res.json({});
+});
+
+
+// Serve frontend static assets from public/ folder
+const publicPath = path.resolve(globalThis.__dirname || ".", "../../yudetter/dist/public");
+app.use(express.static(publicPath));
+
+// Serve uploaded images statically from project root uploads folder
+const uploadsPath = path.resolve(globalThis.__dirname || ".", "../../uploads");
+app.use("/uploads", express.static(uploadsPath));
+
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api")) {
+    return next();
+  }
+  res.sendFile(path.join(publicPath, "index.html"), (err) => {
+    if (err) {
+      next();
+    }
+  });
+});
 
 export default app;

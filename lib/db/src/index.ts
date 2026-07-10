@@ -10,7 +10,14 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Enable SSL for Supabase / production PostgreSQL
+const sslConfig =
+  process.env.DATABASE_URL.includes("supabase.co") ||
+  process.env.NODE_ENV === "production"
+    ? { ssl: { rejectUnauthorized: false } }
+    : {};
+
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL, ...sslConfig });
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";

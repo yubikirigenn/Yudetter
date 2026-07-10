@@ -4,7 +4,8 @@ import {
   useGetYudate, 
   useGetYudateReplies,
   getGetYudateQueryKey,
-  getGetYudateRepliesQueryKey
+  getGetYudateRepliesQueryKey,
+  useGetMe
 } from "@workspace/api-client-react";
 import YudateCard from "@/components/yudate-card";
 import YudateComposer from "@/components/yudate-composer";
@@ -12,6 +13,8 @@ import YudateComposer from "@/components/yudate-composer";
 export default function YudateDetailPage() {
   const [, params] = useRoute("/yudate/:id");
   const id = Number(params?.id);
+
+  const { data: me } = useGetMe();
 
   const { data: yudate, isLoading } = useGetYudate(id, {
     query: { enabled: !!id, queryKey: getGetYudateQueryKey(id) }
@@ -43,7 +46,12 @@ export default function YudateDetailPage() {
       <YudateCard yudate={yudate} isDetail={true} />
 
       <div className="border-b border-border/50">
-        <YudateComposer replyToId={yudate.id} placeholder="返信を投稿" />
+        <YudateComposer
+          replyToId={yudate.id}
+          placeholder="返信を投稿"
+          isReplyToReply={yudate.replyToId !== null}
+          isOwnPost={yudate.author.username === me?.username}
+        />
       </div>
 
       <div className="flex flex-col">

@@ -9,14 +9,18 @@ export default function LandingPage() {
         <div className="absolute inset-0 opacity-20" 
           style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, hsl(145 60% 55%) 1px, transparent 0)', backgroundSize: '32px 32px' }}
         ></div>
-        <img src="/logo.svg" alt="Yudetter" className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] drop-shadow-2xl animate-pulse duration-3000" />
+        <div className="w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full overflow-hidden border-4 border-primary/20 bg-background flex items-center justify-center relative shadow-xl">
+          <img src="/logo.png" alt="Yudetter" className="w-full h-full object-cover scale-[1.3] drop-shadow-2xl animate-pulse duration-[3000ms]" />
+        </div>
       </div>
       
       {/* Right interaction side */}
       <div className="flex-1 flex items-center p-8 lg:p-24 bg-background">
         <div className="max-w-md w-full mx-auto">
           <div className="flex items-center gap-4 mb-16">
-            <img src="/logo.svg" alt="Yudetter Logo" className="w-12 h-12" />
+            <div className="w-12 h-12 rounded-full overflow-hidden border border-border flex items-center justify-center shrink-0">
+              <img src="/logo.png" alt="Yudetter Logo" className="w-full h-full object-cover scale-[1.3]" />
+            </div>
             <h1 className="text-4xl font-rounded font-extrabold text-foreground">Yudetter</h1>
           </div>
 

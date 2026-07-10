@@ -1,19 +1,55 @@
 import { Router } from "express";
-import { eq, desc, and } from "drizzle-orm";
-import { db, usersTable, yudatesTable, likesTable, followsTable, notificationsTable } from "@workspace/db";
+import { eq, desc, and, isNull, or, lte, gt } from "drizzle-orm";
+import { db, usersTable, yudatesTable, likesTable, followsTable, notificationsTable, blocksTable } from "@workspace/db";
 import {
   UpdateMeBody,
-  SyncUserBody,
 } from "@workspace/api-zod";
 import { requireAuth, optionalAuth } from "../lib/auth";
 import { buildUserProfile, buildYudatePage } from "../lib/buildResponse";
+import { sseManager } from "../lib/sse";
+import { checkAndApplyLoginBonus, checkAndApplyRankingRewards } from "../lib/yudedollar";
 
 const router = Router();
 
+// POST /users/lookup-email - ユーザーID(@ID)からメールアドレスを返す（ログイン補助用）
+router.post("/users/lookup-email", async (req, res): Promise<void> => {
+  const { username } = req.body as { username?: string };
+  if (!username) {
+    res.status(400).json({ error: "usernameが必要です" });
+    return;
+  }
+  const clean = username.trim().toLowerCase().replace(/^@/, "");
+  const [user] = await db
+    .select({ email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.username, clean))
+    .limit(1);
+  if (!user) {
+    res.status(404).json({ error: "そのユーザーIDは存在しません" });
+    return;
+  }
+  res.json({ email: user.email });
+});
+
 // GET /users/me
 router.get("/users/me", requireAuth, async (req, res): Promise<void> => {
+  try {
+    // 非同期でランキング解決をトリガー (レスポンス遅延を防ぐため)
+    checkAndApplyRankingRewards().catch((e) =>
+      console.error("Ranking rewards processing error", e)
+    );
+
+    // ログインボーナスのチェックと適用
+    await checkAndApplyLoginBonus(req.dbUserId!);
+  } catch (e) {
+    console.error("Failed to process login bonus or ranking check", e);
+  }
+
   const profile = await buildUserProfile(req.dbUserId!, req.dbUserId);
-  if (!profile) { res.status(404).json({ error: "User not found" }); return; }
+  if (!profile) {
+    res.status(404).json({ error: "User not found" });
+    return;
+  }
   res.json(profile);
 });
 
@@ -29,65 +65,34 @@ router.patch("/users/me", requireAuth, async (req, res): Promise<void> => {
   if (parsed.data.displayName !== undefined) updates.displayName = parsed.data.displayName;
   if (parsed.data.bio !== undefined) updates.bio = parsed.data.bio;
   if (parsed.data.avatarUrl !== undefined) updates.avatarUrl = parsed.data.avatarUrl;
+  if (parsed.data.headerUrl !== undefined) updates.headerUrl = parsed.data.headerUrl;
+  if (parsed.data.isPrivate !== undefined) updates.isPrivate = parsed.data.isPrivate;
+
+  if (parsed.data.username !== undefined && parsed.data.username !== null) {
+    const cleanUsername = parsed.data.username.trim().toLowerCase();
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(cleanUsername)) {
+      res.status(400).json({ error: "ユーザー名は3〜20文字の半角英数字とアンダースコアのみ使用できます。" });
+      return;
+    }
+
+    const [existing] = await db
+      .select({ id: usersTable.id })
+      .from(usersTable)
+      .where(eq(usersTable.username, cleanUsername))
+      .limit(1);
+
+    if (existing && existing.id !== req.dbUserId) {
+      res.status(400).json({ error: "このユーザー名は既に他のユーザーに使用されています。" });
+      return;
+    }
+    updates.username = cleanUsername;
+  }
 
   await db.update(usersTable).set(updates).where(eq(usersTable.id, req.dbUserId!));
   const profile = await buildUserProfile(req.dbUserId!, req.dbUserId);
   res.json(profile);
 });
 
-// POST /users/sync - JIT provision (auth required; clerkId derived from session, not body)
-router.post("/users/sync", async (req, res): Promise<void> => {
-  const { getAuth } = await import("@clerk/express");
-  const auth = getAuth(req);
-  const verifiedClerkId = auth?.userId;
-
-  if (!verifiedClerkId) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-
-  const parsed = SyncUserBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
-    return;
-  }
-
-  // Ignore any clerkId in the body — always use the verified session subject
-  const { username, displayName, email, avatarUrl } = parsed.data;
-  const clerkId = verifiedClerkId;
-
-  // Upsert by clerkId
-  const existing = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.clerkId, clerkId))
-    .limit(1);
-
-  let userId: number;
-  if (existing.length > 0) {
-    await db
-      .update(usersTable)
-      .set({ displayName, avatarUrl: avatarUrl ?? null })
-      .where(eq(usersTable.clerkId, clerkId));
-    userId = existing[0].id;
-  } else {
-    // Ensure username uniqueness
-    let finalUsername = username;
-    const usernameExists = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
-    if (usernameExists.length > 0) {
-      finalUsername = `${username}_${Date.now().toString(36)}`;
-    }
-
-    const [created] = await db
-      .insert(usersTable)
-      .values({ clerkId, username: finalUsername, displayName, email, avatarUrl: avatarUrl ?? null })
-      .returning({ id: usersTable.id });
-    userId = created.id;
-  }
-
-  const profile = await buildUserProfile(userId, userId);
-  res.json(profile);
-});
 
 // GET /users/:username
 router.get("/users/:username", optionalAuth, async (req, res): Promise<void> => {
@@ -104,13 +109,67 @@ router.get("/users/:username", optionalAuth, async (req, res): Promise<void> => 
 router.get("/users/:username/yudates", optionalAuth, async (req, res): Promise<void> => {
   const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
 
-  const [user] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
+  const [user] = await db.select({ id: usersTable.id, pinnedYudateId: usersTable.pinnedYudateId }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  const now = new Date();
+  
+  let conditions = [eq(yudatesTable.authorId, user.id)];
+  
+  if (req.dbUserId !== user.id) {
+    conditions.push(or(isNull(yudatesTable.scheduledFor), lte(yudatesTable.scheduledFor, now)));
+    conditions.push(or(isNull(yudatesTable.autoDeleteAt), gt(yudatesTable.autoDeleteAt, now)));
+    
+    let canView = true;
+    
+    // ブロック判定
+    if (req.dbUserId) {
+      const [block] = await db.select().from(blocksTable)
+        .where(
+          or(
+            and(eq(blocksTable.blockerId, req.dbUserId), eq(blocksTable.blockedId, user.id)),
+            and(eq(blocksTable.blockerId, user.id), eq(blocksTable.blockedId, req.dbUserId))
+          )
+        ).limit(1);
+      if (block) {
+        canView = false;
+      }
+    }
+
+    if (user.isPrivate) {
+      if (!req.dbUserId) {
+        canView = false;
+      } else {
+        const [f] = await db.select().from(followsTable)
+          .where(and(eq(followsTable.followerId, req.dbUserId), eq(followsTable.followingId, user.id)));
+        if (!f || f.status !== "accepted") {
+          canView = false;
+        }
+      }
+    }
+    
+    if (!canView) {
+      res.json({ items: [], nextCursor: null });
+      return;
+    }
+    
+    // visibility: followers も考慮（鍵垢でなくても、フォロワー限定投稿はフォローしていないと見れない）
+    if (!req.dbUserId) {
+      conditions.push(eq(yudatesTable.visibility, "public"));
+    } else {
+      const [f] = await db.select().from(followsTable)
+        .where(and(eq(followsTable.followerId, req.dbUserId), eq(followsTable.followingId, user.id)));
+      if (!f || f.status !== "accepted") {
+         conditions.push(eq(yudatesTable.visibility, "public"));
+      }
+    }
+  }
 
   const rows = await db
     .select({ id: yudatesTable.id })
     .from(yudatesTable)
-    .where(eq(yudatesTable.authorId, user.id))
+    // @ts-ignore
+    .where(and(...conditions))
     .orderBy(desc(yudatesTable.id))
     .limit(50);
 
@@ -122,8 +181,43 @@ router.get("/users/:username/yudates", optionalAuth, async (req, res): Promise<v
 router.get("/users/:username/likes", optionalAuth, async (req, res): Promise<void> => {
   const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
 
-  const [user] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
+  const [user] = await db.select({ id: usersTable.id, isPrivate: usersTable.isPrivate }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
   if (!user) { res.status(404).json({ error: "User not found" }); return; }
+
+  let canView = true;
+  if (req.dbUserId !== user.id) {
+    // ブロック判定
+    if (req.dbUserId) {
+      const [block] = await db.select().from(blocksTable)
+        .where(
+          or(
+            and(eq(blocksTable.blockerId, req.dbUserId), eq(blocksTable.blockedId, user.id)),
+            and(eq(blocksTable.blockerId, user.id), eq(blocksTable.blockedId, req.dbUserId))
+          )
+        ).limit(1);
+      if (block) {
+        canView = false;
+      }
+    }
+    
+    // 非公開アカウント判定
+    if (user.isPrivate) {
+      if (!req.dbUserId) {
+        canView = false;
+      } else {
+        const [f] = await db.select().from(followsTable)
+          .where(and(eq(followsTable.followerId, req.dbUserId), eq(followsTable.followingId, user.id)));
+        if (!f || f.status !== "accepted") {
+          canView = false;
+        }
+      }
+    }
+  }
+
+  if (!canView) {
+    res.json({ items: [], nextCursor: null });
+    return;
+  }
 
   const likedRows = await db
     .select({ yudateId: likesTable.yudateId })
@@ -151,9 +245,55 @@ router.post("/users/:username/follow", requireAuth, async (req, res): Promise<vo
       type: "follow",
       actorId: req.dbUserId!,
     }).onConflictDoNothing();
+
+    sseManager.notifyUser(target.id, {
+      type: "follow",
+      actorName: req.user?.name || "誰か",
+      actionMessage: "があなたをフォローしました",
+    });
   } catch {
     // already following
   }
+  res.json({ success: true });
+});
+
+
+// GET /users/me/follow-requests
+router.get("/users/me/follow-requests", requireAuth, async (req, res): Promise<void> => {
+  const requests = await db
+    .select({ followerId: followsTable.followerId })
+    .from(followsTable)
+    .where(and(eq(followsTable.followingId, req.dbUserId), eq(followsTable.status, "pending")));
+  
+  const profiles = await Promise.all(
+    requests.map(r => buildUserProfile(r.followerId, req.dbUserId))
+  );
+  
+  res.json(profiles);
+});
+
+// POST /users/:username/follow/approve
+router.post("/users/:username/follow/approve", requireAuth, async (req, res): Promise<void> => {
+  const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
+  const [targetUser] = await db.select().from(usersTable).where(eq(usersTable.username, username)).limit(1);
+  if (!targetUser) { res.status(404).json({ error: "User not found" }); return; }
+
+  await db.update(followsTable)
+    .set({ status: "accepted" })
+    .where(and(eq(followsTable.followerId, targetUser.id), eq(followsTable.followingId, req.dbUserId)));
+    
+  res.json({ success: true });
+});
+
+// POST /users/:username/follow/reject
+router.post("/users/:username/follow/reject", requireAuth, async (req, res): Promise<void> => {
+  const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
+  const [targetUser] = await db.select().from(usersTable).where(eq(usersTable.username, username)).limit(1);
+  if (!targetUser) { res.status(404).json({ error: "User not found" }); return; }
+
+  await db.delete(followsTable)
+    .where(and(eq(followsTable.followerId, targetUser.id), eq(followsTable.followingId, req.dbUserId)));
+    
   res.json({ success: true });
 });
 
@@ -167,6 +307,16 @@ router.delete("/users/:username/follow", requireAuth, async (req, res): Promise<
   await db.delete(followsTable).where(
     and(eq(followsTable.followerId, req.dbUserId!), eq(followsTable.followingId, target.id)),
   );
+
+  // Remove the follow notification
+  await db.delete(notificationsTable).where(
+    and(
+      eq(notificationsTable.userId, target.id),
+      eq(notificationsTable.type, "follow"),
+      eq(notificationsTable.actorId, req.dbUserId!)
+    )
+  );
+
   res.json({ success: true });
 });
 
@@ -205,6 +355,60 @@ router.get("/users/:username/following", optionalAuth, async (req, res): Promise
 
   const profiles = (
     await Promise.all(following.map((f) => buildUserProfile(f.id, req.dbUserId)))
+  ).filter(Boolean);
+
+  res.json({ items: profiles, nextCursor: null });
+});
+
+// POST /users/:username/block
+router.post("/users/:username/block", requireAuth, async (req, res): Promise<void> => {
+  const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
+
+  const [target] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
+  if (!target) { res.status(404).json({ error: "User not found" }); return; }
+  if (target.id === req.dbUserId) { res.status(400).json({ error: "Cannot block yourself" }); return; }
+
+  try {
+    // ブロック実行
+    await db.insert(blocksTable).values({ blockerId: req.dbUserId!, blockedId: target.id }).onConflictDoNothing();
+    
+    // お互いのフォロー関係を解除
+    await db.delete(followsTable).where(
+      or(
+        and(eq(followsTable.followerId, req.dbUserId!), eq(followsTable.followingId, target.id)),
+        and(eq(followsTable.followerId, target.id), eq(followsTable.followingId, req.dbUserId!))
+      )
+    );
+  } catch (error) {
+    console.error(error);
+  }
+  res.json({ success: true });
+});
+
+// DELETE /users/:username/block
+router.delete("/users/:username/block", requireAuth, async (req, res): Promise<void> => {
+  const username = Array.isArray(req.params.username) ? req.params.username[0] : req.params.username;
+
+  const [target] = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.username, username)).limit(1);
+  if (!target) { res.status(404).json({ error: "User not found" }); return; }
+
+  await db.delete(blocksTable).where(
+    and(eq(blocksTable.blockerId, req.dbUserId!), eq(blocksTable.blockedId, target.id)),
+  );
+
+  res.json({ success: true });
+});
+
+// GET /users/me/blocks
+router.get("/users/me/blocks", requireAuth, async (req, res): Promise<void> => {
+  const blocked = await db
+    .select({ id: blocksTable.blockedId })
+    .from(blocksTable)
+    .where(eq(blocksTable.blockerId, req.dbUserId!))
+    .limit(50);
+
+  const profiles = (
+    await Promise.all(blocked.map((b) => buildUserProfile(b.id, req.dbUserId)))
   ).filter(Boolean);
 
   res.json({ items: profiles, nextCursor: null });

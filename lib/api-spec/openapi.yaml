@@ -42,11 +42,12 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: ["integer", "null"]
+            type: integer
+            default: 0
         - name: limit
           in: query
           schema:
-            type: ["integer", "null"]
+            type: integer
       responses:
         "200":
           description: Timeline yudates
@@ -373,6 +374,59 @@ paths:
               schema:
                 $ref: "#/components/schemas/YudatePage"
 
+
+  /users/me/follow-requests:
+    get:
+      summary: Get pending follow requests
+      operationId: getFollowRequests
+      tags:
+        - Users
+      responses:
+        "200":
+          description: List of users requesting to follow
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserProfile"
+
+  /users/{username}/follow/approve:
+    post:
+      summary: Approve follow request
+      operationId: approveFollowRequest
+      tags:
+        - Users
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: User not found
+
+  /users/{username}/follow/reject:
+    post:
+      summary: Reject follow request
+      operationId: rejectFollowRequest
+      tags:
+        - Users
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: User not found
+
   /users/{username}/follow:
     post:
       operationId: followUser
@@ -457,7 +511,7 @@ paths:
         - name: limit
           in: query
           schema:
-            type: ["integer", "null"]
+            type: integer
       responses:
         "200":
           description: Popular yudates
@@ -475,11 +529,12 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: ["integer", "null"]
+            type: integer
+            default: 0
         - name: limit
           in: query
           schema:
-            type: ["integer", "null"]
+            type: integer
       responses:
         "200":
           description: Explore yudates
@@ -503,7 +558,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [yudates, users, all]
+            enum: [yudates, users, all, latest, popular, oldest]
       responses:
         "200":
           description: Search results
@@ -522,7 +577,8 @@ paths:
         - name: cursor
           in: query
           schema:
-            type: ["integer", "null"]
+            type: integer
+            default: 0
       responses:
         "200":
           description: Notifications
@@ -555,7 +611,415 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UnreadCount"
+                 $ref: "#/components/schemas/UnreadCount"
+
+  # ── WALLET ───────────────────────────────────────────────────────────────
+  /wallet/history:
+    get:
+      operationId: getWalletHistory
+      tags: [wallet]
+      summary: Get Yudedollar transaction history
+      responses:
+        "200":
+          description: Wallet transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/YdTransaction"
+
+  # ── MARKET ───────────────────────────────────────────────────────────────
+  /market/items:
+    get:
+      operationId: getMarketItems
+      tags: [market]
+      summary: Get list of market items
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [image, game, user_id]
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [selling, sold, reserved, completed]
+      responses:
+        "200":
+          description: List of market items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketItem"
+    post:
+      operationId: createMarketItem
+      tags: [market]
+      summary: Create a new market item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                itemType:
+                  type: string
+                  enum: [image, audio, game, user_id]
+                itemData:
+                  type: string
+                price:
+                  type: integer
+                saleType:
+                  type: string
+                  enum: [normal, auction]
+                auctionDurationDays:
+                  type: integer
+                thumbnailUrl:
+                  type: string
+                buyoutPrice:
+                  type: integer
+              required:
+                - title
+                - itemType
+                - itemData
+                - price
+                - saleType
+      responses:
+        "201":
+          description: Created market item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketItem"
+
+  /market/items/{id}:
+    get:
+      operationId: getMarketItem
+      tags: [market]
+      summary: Get a single market item by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Market item detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketItem"
+
+  /market/items/{id}/purchase:
+    post:
+      operationId: purchaseMarketItem
+      tags: [market]
+      summary: Buy a market item or place a bid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bidAmount:
+                  type: integer
+      responses:
+        "200":
+          description: Transaction result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                required:
+                  - success
+
+  /market/items/{id}/like:
+    post:
+      operationId: likeMarketItem
+      tags: [market]
+      summary: Like a market item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+    delete:
+      operationId: unlikeMarketItem
+      tags: [market]
+      summary: Unlike a market item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+
+  /market/items/{id}/comments:
+    get:
+      operationId: getMarketItemComments
+      tags: [market]
+      summary: Get comments for a market item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketComment"
+    post:
+      operationId: createMarketItemComment
+      tags: [market]
+      summary: Add a comment to a market item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+              required:
+                - comment
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketComment"
+
+  /market/items/{id}/claim-id:
+    post:
+      operationId: claimPurchasedId
+      tags: [market]
+      summary: Apply purchased user ID to own account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+
+  # ── GAMES ────────────────────────────────────────────────────────────────
+  /games:
+    get:
+      operationId: getGames
+      tags: [games]
+      summary: Get list of YGS games
+      responses:
+        "200":
+          description: List of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Game"
+    post:
+      operationId: createGame
+      tags: [games]
+      summary: Create and publish a new game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                htmlContent:
+                  type: string
+                playPrice:
+                  type: integer
+              required:
+                - title
+                - htmlContent
+      responses:
+        "201":
+          description: Created game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+
+  /games/{id}:
+    get:
+      operationId: getGame
+      tags: [games]
+      summary: Get a single game by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Game detail including HTML content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+    put:
+      operationId: updateGame
+      tags: [games]
+      summary: Update a game by ID
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                htmlContent:
+                  type: string
+                playPrice:
+                  type: integer
+              required:
+                - title
+                - htmlContent
+      responses:
+        "200":
+          description: Game updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Game"
+
+  /games/{id}/charge:
+    post:
+      operationId: chargeGamePayment
+      tags: [games]
+      summary: Process in-game YD payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                description:
+                  type: string
+              required:
+                - amount
+                - description
+      responses:
+        "200":
+          description: Payment transaction ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  transactionId:
+                    type: integer
+                required:
+                  - success
+
+  # ── RANKINGS ─────────────────────────────────────────────────────────────
+  /rankings:
+    get:
+      operationId: getRankings
+      tags: [rankings]
+      summary: Get current rankings
+      responses:
+        "200":
+          description: Ranking lists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Rankings"
+
+  /rankings/opt-in:
+    post:
+      operationId: optInRankings
+      tags: [rankings]
+      summary: Join the ranking system
+      responses:
+        "200":
+          description: Success
+
+  /rankings/opt-out:
+    post:
+      operationId: optOutRankings
+      tags: [rankings]
+      summary: Leave the ranking system
+      responses:
+        "200":
+          description: Success
 
 components:
   schemas:
@@ -589,6 +1053,16 @@ components:
       properties:
         setupComplete:
           type: boolean
+        isPrivate:
+          type: boolean
+        isBlocking:
+          type: boolean
+        isBlockedBy:
+          type: boolean
+        pinnedYudateId:
+          type: ["integer", "null"]
+        headerUrl:
+          type: ["string", "null"]
         birthday:
           type: ["string", "null"]
         id:
@@ -613,9 +1087,24 @@ components:
           type: integer
         isFollowing:
           type: boolean
+        isFollowPending:
+          type: boolean
         createdAt:
           type: string
           format: date-time
+        visibility:
+          type: string
+          enum: [public, followers]
+        isSpoiler:
+          type: boolean
+        yudedollar:
+          type: integer
+        badgeType:
+          type: ["string", "null"]
+        consecutiveLoginDays:
+          type: integer
+        rankingOptIn:
+          type: boolean
       required:
         - id
         - clerkId
@@ -626,8 +1115,15 @@ components:
         - followingCount
         - yudateCount
         - isFollowing
+        - isFollowPending
+        - isPrivate
+        - isBlocking
+        - isBlockedBy
         - setupComplete
         - createdAt
+        - yudedollar
+        - consecutiveLoginDays
+        - rankingOptIn
 
     UserProfileUpdate:
       type: object
@@ -638,6 +1134,10 @@ components:
           type: ["string", "null"]
         avatarUrl:
           type: ["string", "null"]
+        headerUrl:
+          type: ["string", "null"]
+        isPrivate:
+          type: boolean
 
     UserSyncInput:
       type: object
@@ -696,6 +1196,19 @@ components:
             - type: "null"
         replyToId:
           type: ["integer", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        visibility:
+          type: string
+          enum: [public, followers]
+        isSpoiler:
+          type: boolean
+        reactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/YudateReaction"
+        superYudateAmount:
+          type: integer
         createdAt:
           type: string
           format: date-time
@@ -708,6 +1221,7 @@ components:
         - replyCount
         - isLiked
         - isReyudated
+        - superYudateAmount
         - createdAt
 
     QuotedYudate:
@@ -747,6 +1261,8 @@ components:
           type: string
           minLength: 1
           maxLength: 280
+        superYudateAmount:
+          type: integer
       required:
         - content
 
@@ -844,3 +1360,241 @@ components:
       required:
         - yudates
         - users
+
+    ReactionInput:
+      type: object
+      properties:
+        emoji:
+          type: string
+      required:
+        - emoji
+
+    YudateReaction:
+      type: object
+      properties:
+        emoji:
+          type: string
+        count:
+          type: integer
+        isReacted:
+          type: boolean
+      required:
+        - emoji
+        - count
+        - isReacted
+
+    UploadResult:
+      type: object
+      properties:
+        url:
+          type: string
+      required:
+        - url
+
+    YdTransaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        amount:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        referenceId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - amount
+        - type
+        - description
+        - createdAt
+
+    MarketItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        seller:
+          $ref: "#/components/schemas/UserProfile"
+        buyer:
+          type: ["object", "null"]
+          oneOf:
+            - $ref: "#/components/schemas/UserProfile"
+            - type: "null"
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        itemType:
+          type: string
+          enum: [image, audio, game, user_id]
+        itemData:
+          type: string
+        thumbnailUrl:
+          type: ["string", "null"]
+        price:
+          type: integer
+        saleType:
+          type: string
+          enum: [normal, auction]
+        status:
+          type: string
+          enum: [selling, sold, reserved, completed]
+        auctionEndAt:
+          type: ["string", "null"]
+          format: date-time
+        highestBid:
+          type: ["integer", "null"]
+        highestBidder:
+          type: ["object", "null"]
+          oneOf:
+            - $ref: "#/components/schemas/UserProfile"
+            - type: "null"
+        buyoutPrice:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        likeCount:
+          type: integer
+        commentCount:
+          type: integer
+        isLiked:
+          type: boolean
+      required:
+        - id
+        - seller
+        - title
+        - itemType
+        - itemData
+        - price
+        - saleType
+        - status
+        - createdAt
+        - updatedAt
+        - likeCount
+        - commentCount
+        - isLiked
+
+    MarketComment:
+      type: object
+      properties:
+        id:
+          type: integer
+        itemId:
+          type: integer
+        user:
+          $ref: "#/components/schemas/UserProfile"
+        comment:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - itemId
+        - user
+        - comment
+        - createdAt
+
+    Game:
+      type: object
+      properties:
+        id:
+          type: integer
+        creator:
+          $ref: "#/components/schemas/UserProfile"
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        htmlContent:
+          type: ["string", "null"]
+        playPrice:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - creator
+        - title
+        - playPrice
+        - createdAt
+        - updatedAt
+
+    Rankings:
+      type: object
+      properties:
+        daily:
+          type: object
+          properties:
+            post:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserProfileScore"
+            follower:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserProfileScore"
+          required:
+            - post
+            - follower
+        weekly:
+          type: object
+          properties:
+            post:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserProfileScore"
+            follower:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserProfileScore"
+          required:
+            - post
+            - follower
+        allTime:
+          type: object
+          properties:
+            post:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserProfileScore"
+            follower:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserProfileScore"
+          required:
+            - post
+            - follower
+      required:
+        - daily
+        - weekly
+        - allTime
+
+    UserProfileScore:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/UserProfile"
+        score:
+          type: integer
+      required:
+        - user
+        - score
+
