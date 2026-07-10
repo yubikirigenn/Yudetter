@@ -14,10 +14,13 @@ const upload = multer({
     fileSize: 20 * 1024 * 1024, // 20MB limit
   },
   fileFilter: (_req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|webm|mp3|wav|m4a/;
+    const allowedExtensions = /^\.(jpg|jpeg|png|gif|webp|mov|mp4|webm|mp3|wav|m4a|ogg|aac)$/i;
+    const allowedMimeTypes = /^(image|video|audio)\//i;
+
     const ext = path.extname(file.originalname).toLowerCase();
-    const mime = file.mimetype;
-    if (allowedTypes.test(ext) && allowedTypes.test(mime)) {
+    const mime = file.mimetype.toLowerCase();
+
+    if (allowedExtensions.test(ext) || allowedMimeTypes.test(mime) || mime === "application/octet-stream") {
       cb(null, true);
     } else {
       cb(new Error("対応していないファイル形式です（画像、動画、音声のみ対応）。"));

@@ -200,297 +200,302 @@ export default function YudateComposer({
   const isOverLimit = content.length > 280;
 
   return (
-    <div className="flex gap-4 p-4 border-b border-border/50 bg-background">
-      <div className="shrink-0 pt-1">
-        <Avatar className="w-12 h-12">
-          <AvatarImage src={me?.avatarUrl || ''} />
-          <AvatarFallback>{me?.displayName?.[0] || 'U'}</AvatarFallback>
-        </Avatar>
-      </div>
-      <div className="flex-1 min-w-0">
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={handleInput}
-          placeholder={placeholder}
-          className="w-full bg-transparent text-xl outline-none resize-none placeholder:text-muted-foreground mt-2 mb-2 min-h-[120px]"
-          maxLength={300}
-        />
+    <div className="flex flex-col h-full bg-background min-h-[inherit]">
+      {/* Scrollable input and preview section */}
+      <div className="flex-grow overflow-y-auto p-4 flex gap-4 min-h-0">
+        <div className="shrink-0 pt-1">
+          <Avatar className="w-12 h-12">
+            <AvatarImage src={me?.avatarUrl || ''} />
+            <AvatarFallback>{me?.displayName?.[0] || 'U'}</AvatarFallback>
+          </Avatar>
+        </div>
+        <div className="flex-1 min-w-0">
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={handleInput}
+            placeholder={placeholder}
+            className="w-full bg-transparent text-xl outline-none resize-none placeholder:text-muted-foreground mt-2 mb-2 min-h-[120px]"
+            maxLength={300}
+          />
 
-        {/* Media Preview */}
-        {imageUrl && (
-          <div className="relative mt-2 mb-3 rounded-xl overflow-hidden border border-border bg-black/5 dark:bg-white/5">
-            {(() => {
-              const url = imageUrl.toLowerCase();
-              if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov')) {
-                return (
-                  <video src={imageUrl} controls className="max-h-[300px] w-full object-contain" />
-                );
-              } else if (url.endsWith('.mp3') || url.endsWith('.wav') || url.endsWith('.m4a') || url.endsWith('.ogg')) {
-                return (
-                  <div className="p-4 flex justify-center">
-                    <audio src={imageUrl} controls className="w-full" />
-                  </div>
-                );
-              } else {
-                return (
-                  <img src={imageUrl} alt="添付メディア" className="max-h-64 w-full object-cover" />
-                );
-              }
-            })()}
-            <button
-              onClick={() => setImageUrl(null)}
-              className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black/80 transition-colors"
-              title="削除"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Quoted yudate preview */}
-        {quotedYudatePreview && (
-          <div className="border border-border rounded-xl p-3 mb-3 bg-secondary/20">
-            <div className="flex items-center gap-2 mb-1">
-              <Avatar className="w-4 h-4">
-                <AvatarImage src={quotedYudatePreview.author.avatarUrl || ''} />
-                <AvatarFallback className="text-[8px]">{quotedYudatePreview.author.displayName[0]}</AvatarFallback>
-              </Avatar>
-              <span className="font-bold text-sm">{quotedYudatePreview.author.displayName}</span>
-              <span className="text-muted-foreground text-sm">@{quotedYudatePreview.author.username}</span>
+          {/* Media Preview */}
+          {imageUrl && (
+            <div className="relative mt-2 mb-3 rounded-xl overflow-hidden border border-border bg-black/5 dark:bg-white/5">
+              {(() => {
+                const url = imageUrl.toLowerCase();
+                if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov')) {
+                  return (
+                    <video src={imageUrl} controls className="max-h-[300px] w-full object-contain" />
+                  );
+                } else if (url.endsWith('.mp3') || url.endsWith('.wav') || url.endsWith('.m4a') || url.endsWith('.ogg')) {
+                  return (
+                    <div className="p-4 flex justify-center">
+                      <audio src={imageUrl} controls className="w-full" />
+                    </div>
+                  );
+                } else {
+                  return (
+                    <img src={imageUrl} alt="添付メディア" className="max-h-64 w-full object-cover" />
+                  );
+                }
+              })()}
+              <button
+                onClick={() => setImageUrl(null)}
+                className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black/80 transition-colors"
+                title="削除"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <p className="text-[14px] text-muted-foreground line-clamp-3">{quotedYudatePreview.content}</p>
-          </div>
-        )}
+          )}
 
-        {/* Super Yudate Attachment Preview */}
-        {replyToId && !isReplyToReply && Number(superYudateAmount) > 0 && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/40 border border-border/60 px-2.5 py-1.5 rounded-full w-fit mb-3">
-            <span>スーパーユデート: {Number(superYudateAmount).toLocaleString()} YD</span>
-            <button
-              type="button"
-              onClick={() => setSuperYudateAmount("")}
-              className="text-muted-foreground hover:text-foreground shrink-0 rounded-full hover:bg-secondary/80 p-0.5 transition-colors"
-              title="解除"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
-        )}
+          {/* Quoted yudate preview */}
+          {quotedYudatePreview && (
+            <div className="border border-border rounded-xl p-3 mb-3 bg-secondary/20">
+              <div className="flex items-center gap-2 mb-1">
+                <Avatar className="w-4 h-4">
+                  <AvatarImage src={quotedYudatePreview.author.avatarUrl || ''} />
+                  <AvatarFallback className="text-[8px]">{quotedYudatePreview.author.displayName[0]}</AvatarFallback>
+                </Avatar>
+                <span className="font-bold text-sm">{quotedYudatePreview.author.displayName}</span>
+                <span className="text-muted-foreground text-sm">@{quotedYudatePreview.author.username}</span>
+              </div>
+              <p className="text-[14px] text-muted-foreground line-clamp-3">{quotedYudatePreview.content}</p>
+            </div>
+          )}
 
-        {/* Status Indicators */}
-        <div className="flex flex-wrap gap-2 mb-2">
-          {isSpoiler && (
-            <span className="text-[12px] flex items-center gap-1 font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-              <EyeOff className="w-3 h-3" /> 閲覧注意
-            </span>
+          {/* Super Yudate Attachment Preview */}
+          {replyToId && !isReplyToReply && Number(superYudateAmount) > 0 && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/40 border border-border/60 px-2.5 py-1.5 rounded-full w-fit mb-3">
+              <span>スーパーユデート: {Number(superYudateAmount).toLocaleString()} YD</span>
+              <button
+                type="button"
+                onClick={() => setSuperYudateAmount("")}
+                className="text-muted-foreground hover:text-foreground shrink-0 rounded-full hover:bg-secondary/80 p-0.5 transition-colors"
+                title="解除"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
           )}
-          {visibility === "followers" && (
-            <span className="text-[12px] flex items-center gap-1 font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-              <Lock className="w-3 h-3" /> フォロワー限定
-            </span>
+
+          {/* Status Indicators */}
+          <div className="flex flex-wrap gap-2 mb-2">
+            {isSpoiler && (
+              <span className="text-[12px] flex items-center gap-1 font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                <EyeOff className="w-3 h-3" /> 閲覧注意
+              </span>
+            )}
+            {visibility === "followers" && (
+              <span className="text-[12px] flex items-center gap-1 font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <Lock className="w-3 h-3" /> フォロワー限定
+              </span>
+            )}
+            {autoDeleteIn && (
+              <span className="text-[12px] flex items-center gap-1 font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
+                <Timer className="w-3 h-3" /> {autoDeleteIn >= 60 ? `${autoDeleteIn/60}時間後に削除` : `${autoDeleteIn}分後に削除`}
+              </span>
+            )}
+            {scheduledFor && (
+              <span className="text-[12px] flex items-center gap-1 font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
+                <CalendarClock className="w-3 h-3" /> 予約: {new Date(scheduledFor).toLocaleString()}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky footer for composer options and Submit button */}
+      <div className="shrink-0 sticky bottom-0 bg-background border-t border-border/50 px-4 py-3 flex justify-between items-center z-10 pb-[calc(12px+env(safe-area-inset-bottom))]">
+        <div className="flex gap-1 text-primary relative">
+          {isUploading ? (
+            <div className="p-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+            </div>
+          ) : (
+            <>
+              {/* Image */}
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
+                title="画像"
+                disabled={!!imageUrl}
+              >
+                <Image className="w-5 h-5" />
+                <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+              </button>
+              {/* Video */}
+              <button
+                type="button"
+                onClick={() => videoInputRef.current?.click()}
+                className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
+                title="動画"
+                disabled={!!imageUrl}
+              >
+                <Video className="w-5 h-5" />
+                <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={handleFileSelect} />
+              </button>
+              {/* Audio */}
+              <button
+                type="button"
+                onClick={() => audioInputRef.current?.click()}
+                className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
+                title="音声"
+                disabled={!!imageUrl}
+              >
+                <Mic className="w-5 h-5" />
+                <input ref={audioInputRef} type="file" accept="audio/mpeg,audio/wav,audio/m4a,audio/ogg" className="hidden" onChange={handleFileSelect} />
+              </button>
+              {/* Super Yudate */}
+              {replyToId && !isReplyToReply && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={`p-2 rounded-full hover:bg-primary/10 transition-colors ${Number(superYudateAmount) > 0 ? "text-amber-600 bg-amber-500/10 hover:bg-amber-500/20" : ""}`}
+                      title="スーパーユデート"
+                    >
+                      <Coins className="w-5 h-5" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-60 p-4 flex flex-col gap-3">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-bold text-xs">スーパーユデートを設定</span>
+                      <span className="text-[10px] text-muted-foreground">投げ銭額を 1 〜 100,000 YD で指定します。</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        id="super-yudate-popover-input"
+                        placeholder="額を入力"
+                        min={1}
+                        max={100000}
+                        defaultValue={superYudateAmount}
+                        className="h-8 text-xs focus-visible:ring-amber-500"
+                      />
+                      <span className="text-xs font-bold text-muted-foreground shrink-0">YD</span>
+                    </div>
+                    <div className="flex justify-end gap-1.5">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.getElementById("super-yudate-popover-input") as HTMLInputElement;
+                          if (input) input.value = "";
+                          setSuperYudateAmount("");
+                        }}
+                        className="h-7 text-[10px]"
+                      >
+                        クリア
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.getElementById("super-yudate-popover-input") as HTMLInputElement;
+                          const val = input ? input.value : "";
+                          if (!val) {
+                            setSuperYudateAmount("");
+                            return;
+                          }
+                          const num = Number(val);
+                          if (isNaN(num) || num < 1 || num > 100000) {
+                            toast({ title: "1〜100,000の範囲で入力してください", variant: "destructive" });
+                            return;
+                          }
+                          setSuperYudateAmount(val);
+                        }}
+                        className="h-7 text-[10px] bg-amber-500 hover:bg-amber-600 text-white"
+                      >
+                        確定
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </>
           )}
-          {autoDeleteIn && (
-            <span className="text-[12px] flex items-center gap-1 font-bold text-destructive bg-destructive/10 px-2 py-0.5 rounded-full">
-              <Timer className="w-3 h-3" /> {autoDeleteIn >= 60 ? `${autoDeleteIn/60}時間後に削除` : `${autoDeleteIn}分後に削除`}
-            </span>
-          )}
-          {scheduledFor && (
-            <span className="text-[12px] flex items-center gap-1 font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
-              <CalendarClock className="w-3 h-3" /> 予約: {new Date(scheduledFor).toLocaleString()}
-            </span>
-          )}
+
+          <div className="w-px h-6 bg-border/50 self-center mx-1" />
+
+          {/* Visibility */}
+          <button onClick={() => setIsSpoiler(!isSpoiler)} className={`p-2 rounded-full hover:bg-primary/10 transition-colors ${isSpoiler ? "text-primary" : ""}`} title="閲覧注意">
+            <EyeOff className="w-5 h-5" />
+          </button>
+
+          {/* Visibility */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 rounded-full hover:bg-primary/10 transition-colors" title="公開範囲">
+                {visibility === "public" ? <Globe className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setVisibility("public")} className="gap-2">
+                <Globe className="w-4 h-4" /> 全体公開
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setVisibility("followers")} className="gap-2">
+                <Lock className="w-4 h-4" /> フォロワーのみ公開
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Auto Delete */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 rounded-full hover:bg-primary/10 transition-colors" title="自動削除">
+                <Timer className={`w-5 h-5 ${autoDeleteIn ? 'text-destructive' : ''}`} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setAutoDeleteIn(null)}>オフ</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAutoDeleteIn(15)}>15分後</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAutoDeleteIn(60)}>1時間後</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setAutoDeleteIn(24 * 60)}>24時間後</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Schedule */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="p-2 rounded-full hover:bg-primary/10 transition-colors" title="予約投稿">
+                <CalendarClock className={`w-5 h-5 ${scheduledFor ? 'text-orange-500' : ''}`} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-4 flex flex-col gap-2">
+              <p className="font-bold text-sm">予約投稿日時</p>
+              <Input 
+                type="datetime-local" 
+                value={scheduledFor} 
+                onChange={(e) => setScheduledFor(e.target.value)} 
+              />
+              <div className="flex justify-end mt-2">
+                <Button variant="outline" size="sm" onClick={() => setScheduledFor("")}>クリア</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
-        <div className="flex justify-between items-center pt-3 border-t border-border/50">
-          <div className="flex gap-1 text-primary relative">
-            {isUploading ? (
-              <div className="p-2">
-                <Loader2 className="w-5 h-5 animate-spin" />
+        <div className="flex items-center gap-4">
+          {content.length > 0 && (
+            <>
+              <div className={`text-sm font-medium ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {content.length}/280
               </div>
-            ) : (
-              <>
-                {/* Image */}
-                <button
-                  type="button"
-                  onClick={() => imageInputRef.current?.click()}
-                  className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
-                  title="画像"
-                  disabled={!!imageUrl}
-                >
-                  <Image className="w-5 h-5" />
-                  <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-                </button>
-                {/* Video */}
-                <button
-                  type="button"
-                  onClick={() => videoInputRef.current?.click()}
-                  className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
-                  title="動画"
-                  disabled={!!imageUrl}
-                >
-                  <Video className="w-5 h-5" />
-                  <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={handleFileSelect} />
-                </button>
-                {/* Audio */}
-                <button
-                  type="button"
-                  onClick={() => audioInputRef.current?.click()}
-                  className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
-                  title="音声"
-                  disabled={!!imageUrl}
-                >
-                  <Mic className="w-5 h-5" />
-                  <input ref={audioInputRef} type="file" accept="audio/mpeg,audio/wav,audio/m4a,audio/ogg" className="hidden" onChange={handleFileSelect} />
-                </button>
-                {/* Super Yudate */}
-                {replyToId && !isReplyToReply && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className={`p-2 rounded-full hover:bg-primary/10 transition-colors ${Number(superYudateAmount) > 0 ? "text-amber-600 bg-amber-500/10 hover:bg-amber-500/20" : ""}`}
-                        title="スーパーユデート"
-                      >
-                        <Coins className="w-5 h-5" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-60 p-4 flex flex-col gap-3">
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-bold text-xs">スーパーユデートを設定</span>
-                        <span className="text-[10px] text-muted-foreground">投げ銭額を 1 〜 100,000 YD で指定します。</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Input
-                          type="number"
-                          id="super-yudate-popover-input"
-                          placeholder="額を入力"
-                          min={1}
-                          max={100000}
-                          defaultValue={superYudateAmount}
-                          className="h-8 text-xs focus-visible:ring-amber-500"
-                        />
-                        <span className="text-xs font-bold text-muted-foreground shrink-0">YD</span>
-                      </div>
-                      <div className="flex justify-end gap-1.5">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const input = document.getElementById("super-yudate-popover-input") as HTMLInputElement;
-                            if (input) input.value = "";
-                            setSuperYudateAmount("");
-                          }}
-                          className="h-7 text-[10px]"
-                        >
-                          クリア
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => {
-                            const input = document.getElementById("super-yudate-popover-input") as HTMLInputElement;
-                            const val = input ? input.value : "";
-                            if (!val) {
-                              setSuperYudateAmount("");
-                              return;
-                            }
-                            const num = Number(val);
-                            if (isNaN(num) || num < 1 || num > 100000) {
-                              toast({ title: "1〜100,000の範囲で入力してください", variant: "destructive" });
-                              return;
-                            }
-                            setSuperYudateAmount(val);
-                          }}
-                          className="h-7 text-[10px] bg-amber-500 hover:bg-amber-600 text-white"
-                        >
-                          確定
-                        </Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </>
-            )}
-
-            <div className="w-px h-6 bg-border/50 self-center mx-1" />
-
-            {/* Visibility */}
-            <button onClick={() => setIsSpoiler(!isSpoiler)} className={`p-2 rounded-full hover:bg-primary/10 transition-colors ${isSpoiler ? "text-primary" : ""}`} title="閲覧注意">
-              <EyeOff className="w-5 h-5" />
-            </button>
-
-            {/* Visibility */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2 rounded-full hover:bg-primary/10 transition-colors" title="公開範囲">
-                  {visibility === "public" ? <Globe className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setVisibility("public")} className="gap-2">
-                  <Globe className="w-4 h-4" /> 全体公開
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setVisibility("followers")} className="gap-2">
-                  <Lock className="w-4 h-4" /> フォロワーのみ公開
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Auto Delete */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2 rounded-full hover:bg-primary/10 transition-colors" title="自動削除">
-                  <Timer className={`w-5 h-5 ${autoDeleteIn ? 'text-destructive' : ''}`} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setAutoDeleteIn(null)}>オフ</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setAutoDeleteIn(15)}>15分後</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setAutoDeleteIn(60)}>1時間後</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setAutoDeleteIn(24 * 60)}>24時間後</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Schedule */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="p-2 rounded-full hover:bg-primary/10 transition-colors" title="予約投稿">
-                  <CalendarClock className={`w-5 h-5 ${scheduledFor ? 'text-orange-500' : ''}`} />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-4 flex flex-col gap-2">
-                <p className="font-bold text-sm">予約投稿日時</p>
-                <Input 
-                  type="datetime-local" 
-                  value={scheduledFor} 
-                  onChange={(e) => setScheduledFor(e.target.value)} 
-                />
-                <div className="flex justify-end mt-2">
-                  <Button variant="outline" size="sm" onClick={() => setScheduledFor("")}>クリア</Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {content.length > 0 && (
-              <>
-                <div className={`text-sm font-medium ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {content.length}/280
-                </div>
-                <div className="w-px h-8 bg-border/50" />
-              </>
-            )}
-            <Button
-              onClick={handleSubmit}
-              disabled={!content.trim() || isOverLimit || isPending}
-              className="rounded-full px-6 font-bold font-rounded"
-            >
-              {replyToId ? "返信" : quotedYudateId ? "引用する" : (scheduledFor ? "予約する" : "ユデートする")}
-            </Button>
-          </div>
+              <div className="w-px h-8 bg-border/50" />
+            </>
+          )}
+          <Button
+            onClick={handleSubmit}
+            disabled={!content.trim() || isOverLimit || isPending}
+            className="rounded-full px-6 font-bold font-rounded"
+          >
+            {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            {replyToId ? "返信" : quotedYudateId ? "引用する" : (scheduledFor ? "予約する" : "ユデートする")}
+          </Button>
         </div>
       </div>
     </div>

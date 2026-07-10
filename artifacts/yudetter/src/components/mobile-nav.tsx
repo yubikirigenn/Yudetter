@@ -62,14 +62,18 @@ export default function MobileNav({ me }: { me?: UserProfile }) {
 
       {/* 3. ユデート（投稿）ボタン - 中央配置のプレミアムなプラスボタン */}
       <Dialog open={isComposerOpen} onOpenChange={setIsComposerOpen}>
-        <DialogTrigger asChild>
-          <button
-            className="flex items-center justify-center shrink-0 w-11 h-11 rounded-full bg-primary text-primary-foreground shadow-md active:scale-95 transition-all touch-manipulation mx-1"
-            aria-label="ユデートする"
-          >
-            <Plus className="w-6 h-6" strokeWidth={3} />
-          </button>
-        </DialogTrigger>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsComposerOpen(true);
+          }}
+          className="flex items-center justify-center shrink-0 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg active:scale-90 transition-all touch-manipulation mx-2 -mt-4 border-2 border-background"
+          aria-label="ユデートする"
+        >
+          <Plus className="w-7 h-7" strokeWidth={3} />
+        </button>
         <DialogContent className="w-full h-[100dvh] sm:h-auto sm:w-[92vw] sm:max-w-[500px] p-0 border-none bg-background sm:rounded-2xl sm:overflow-hidden sm:border sm:border-border sm:shadow-xl flex flex-col">
           <div className="flex-grow flex flex-col bg-background h-full overflow-hidden">
             <div className="px-4 py-3.5 border-b border-border/30 flex items-center justify-between shrink-0">
