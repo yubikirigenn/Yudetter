@@ -118,19 +118,27 @@ async function checkAndResolveAuction(itemId: number): Promise<any> {
 async function buildMarketItemResponse(item: any, viewerUserId?: number) {
   let isBought = false;
   if (viewerUserId) {
-    const [boughtCheck] = await db
-      .select()
-      .from(ydTransactionsTable)
-      .where(
-        and(
-          eq(ydTransactionsTable.userId, viewerUserId),
-          eq(ydTransactionsTable.type, "market_buy"),
-          eq(ydTransactionsTable.referenceId, item.id)
+    if (item.saleType === "normal") {
+      const [boughtCheck] = await db
+        .select()
+        .from(ydTransactionsTable)
+        .where(
+          and(
+            eq(ydTransactionsTable.userId, viewerUserId),
+            eq(ydTransactionsTable.type, "market_buy"),
+            eq(ydTransactionsTable.referenceId, item.id)
+          )
         )
-      )
-      .limit(1);
-    if (boughtCheck) {
-      isBought = true;
+        .limit(1);
+      if (boughtCheck) {
+        isBought = true;
+      }
+    } else if (item.saleType === "auction") {
+      const isFinished = item.status === "completed" || item.status === "sold";
+      const isWinner = item.buyerId === viewerUserId || item.highestBidderId === viewerUserId;
+      if (isFinished && isWinner) {
+        isBought = true;
+      }
     }
   }
 
