@@ -20,11 +20,17 @@ export default function YudateDetailPage() {
     query: { enabled: !!id, queryKey: getGetYudateQueryKey(id) }
   });
 
+  // Fetch parent yudate to show conversation thread
+  const parentId = yudate?.replyToId ? Number(yudate.replyToId) : null;
+  const { data: parentYudate, isLoading: parentLoading } = useGetYudate(parentId!, {
+    query: { enabled: !!parentId, queryKey: getGetYudateQueryKey(parentId!) }
+  });
+
   const { data: replies, isLoading: repliesLoading } = useGetYudateReplies(id, {
     query: { enabled: !!id, queryKey: getGetYudateRepliesQueryKey(id) }
   });
 
-  if (isLoading) {
+  if (isLoading || (parentId && parentLoading)) {
     return <div className="flex justify-center p-8 text-primary"><Loader2 className="w-8 h-8 animate-spin" /></div>;
   }
 
@@ -42,6 +48,15 @@ export default function YudateDetailPage() {
           <h1 className="font-bold text-xl">ユデート</h1>
         </div>
       </div>
+
+      {/* Show parent thread if it exists */}
+      {parentId && parentYudate && (
+        <div className="relative">
+          <YudateCard yudate={parentYudate} />
+          {/* Thread connection vertical line */}
+          <div className="absolute top-[48px] left-[28px] bottom-0 w-0.5 bg-border/40 -z-10 sm:left-[36px]" />
+        </div>
+      )}
 
       <YudateCard yudate={yudate} isDetail={true} />
 

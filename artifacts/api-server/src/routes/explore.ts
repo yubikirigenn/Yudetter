@@ -184,8 +184,13 @@ router.get("/explore/trends", async (req, res): Promise<void> => {
     ]);
 
     for (const y of yudates) {
-      // 1. ハッシュタグの抽出（重み: 2）- #からスペースまで全体をタグとして扱う
-      const tags = y.content.match(/#([^\s]+)/g);
+      // Clean content by removing URLs and Markdown links before extracting words
+      const cleanContent = y.content
+        .replace(/https?:\/\/[^\s]+/g, "")
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1");
+
+      // 1. Extract hashtags (Weight: 2)
+      const tags = cleanContent.match(/#([^\s#@.,!?:;'"“”‘’()\[\]{}&|~^*+=\-\\/<>`]+)/g);
       if (tags) {
         for (const tag of tags) {
           const cleanTag = tag.replace(/^#/, "").trim();
@@ -196,12 +201,13 @@ router.get("/explore/trends", async (req, res): Promise<void> => {
         }
       }
 
-      // 2. 本文から単語（2文字以上の漢字、カタカナの連続、または3文字以上の英単語）を抽出
-      const words = y.content.match(/[\u4e00-\u9faf]{2,}|[a-zA-Z0-9_-]{3,}|[\u30a0-\u30ff]{2,}/g);
+      // 2. Extract Japanese words (Kanji or Katakana sequences of length >= 2)
+      // (Exclude raw English words to avoid noise from URLs/HTML properties)
+      const words = cleanContent.match(/[\u4e00-\u9faf]{2,}|[\u30a0-\u30ff]{2,}/g);
       if (words) {
         for (const word of words) {
           const cleanWord = word.trim();
-          if (cleanWord && !stopWords.has(cleanWord) && !cleanWord.startsWith("#")) {
+          if (cleanWord && !stopWords.has(cleanWord)) {
             counts[cleanWord] = (counts[cleanWord] || 0) + 1;
           }
         }

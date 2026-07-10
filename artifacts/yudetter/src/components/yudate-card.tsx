@@ -799,6 +799,12 @@ export default function YudateCard({
             )}
           </div>
 
+          {yudate.replyToId !== null && !isQuoted && (
+            <div className="text-[12px] text-primary/80 font-bold mt-1 mb-2 flex items-center gap-1 select-none">
+              <span>返信</span>
+            </div>
+          )}
+
 
           {(yudate as any).isSpoiler && !showSpoiler ? (
             <div className="mt-2 mb-4">
