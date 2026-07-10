@@ -12,7 +12,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const { data: me } = useGetMe();
   const [location] = useLocation();
 
-  const showFab = location === "/" || location.startsWith("/profile");
+  const showFab = true;
 
   return (
     <div className="flex justify-center min-h-[100dvh] bg-background text-foreground selection:bg-primary/20">
