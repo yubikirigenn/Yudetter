@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, boolean, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -16,7 +16,9 @@ export const yudatesTable = pgTable("yudates", {
   isSpoiler: boolean("is_spoiler").default(false).notNull(), // 閲覧注意フラグ
   superYudateAmount: integer("super_yudate_amount").default(0).notNull(), // スーパーユデート金額 (投げ銭)
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("yudates_author_id_idx").on(t.authorId),
+]);
 
 export const insertYudateSchema = createInsertSchema(yudatesTable).omit({ id: true, createdAt: true });
 export type InsertYudate = z.infer<typeof insertYudateSchema>;

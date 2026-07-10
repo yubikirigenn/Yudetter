@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { usersTable } from "./users";
 import { yudatesTable } from "./yudates";
 
@@ -10,6 +10,8 @@ export const notificationsTable = pgTable("notifications", {
   yudateId: integer("yudate_id").references(() => yudatesTable.id, { onDelete: "cascade" }),
   read: boolean("read").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => [
+  index("notifications_user_id_read_idx").on(t.userId, t.read),
+]);
 
 export type Notification = typeof notificationsTable.$inferSelect;
