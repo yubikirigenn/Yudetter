@@ -1,17 +1,61 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Search, Bell, User, Menu, Wallet, ShoppingBag, Gamepad2, Trophy, Settings, Coins, Plus } from "lucide-react";
+import { Home, Search, Bell, User, Menu, Wallet, ShoppingBag, Gamepad2, Trophy, Settings, Coins, Plus, UserPlus, LogOut, CheckCircle2 } from "lucide-react";
 import type { UserProfile } from "@workspace/api-client-react";
 import { useUnreadNotificationCount } from "@/hooks/use-unread-count";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import YudateComposer from "./yudate-composer";
+import { signOut, authClient, useSession } from "@/lib/auth-client";
+import { useQuery } from "@tanstack/react-query";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+
+/** デバイス上のすべてのセッション一覧を取得 */
+function useDeviceSessions() {
+  const { data: session } = useSession();
+  return useQuery({
+    queryKey: ["device-sessions"],
+    queryFn: async () => {
+      const res = await (authClient as any).multiSession.listDeviceSessions();
+      return (res?.data ?? []) as Array<{
+        session: { token: string };
+        user: { id: string; name?: string; email: string; image?: string; username?: string; displayName?: string };
+      }>;
+    },
+    enabled: !!session,
+    staleTime: 5000,
+  });
+}
 
 export default function MobileNav({ me }: { me?: UserProfile }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { data: session } = useSession();
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const { data: deviceSessions = [] } = useDeviceSessions();
+
+  const currentSessionToken = (session as any)?.session?.token;
+
+  const handleSwitchAccount = async (token: string) => {
+    await (authClient as any).multiSession.setActive({ sessionToken: token });
+    window.location.href = "/";
+  };
+
+  const handleAddAccount = () => {
+    setLocation("/sign-in");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    const others = deviceSessions.filter(s => s.session.token !== currentSessionToken);
+    if (others.length > 0) {
+      await (authClient as any).multiSession.setActive({ sessionToken: others[0].session.token });
+      window.location.href = "/";
+    } else {
+      setLocation("/sign-in");
+    }
+  };
 
   const mainNavItems = [
     { name: "ホーム", path: "/", icon: Home },
@@ -172,6 +216,73 @@ export default function MobileNav({ me }: { me?: UserProfile }) {
               );
             })}
           </nav>
+
+          {/* アカウント操作セクション */}
+          <div className="p-4 border-t border-border/50 bg-secondary/10 flex flex-col gap-2 shrink-0">
+            {/* ログイン中の他アカウント */}
+            {deviceSessions.length > 1 && (
+              <div className="flex flex-col gap-1.5 mb-2">
+                <span className="text-[10px] text-muted-foreground font-bold px-2">ログイン中のアカウント</span>
+                {deviceSessions.map((s) => {
+                  const isCurrent = s.session.token === currentSessionToken;
+                  const displayName = (s.user as any).displayName || s.user.name || s.user.email;
+                  const username = (s.user as any).username || s.user.email.split("@")[0];
+                  const avatar = (s.user as any).avatarUrl || s.user.image;
+                  
+                  return (
+                    <button
+                      key={s.session.token}
+                      disabled={isCurrent}
+                      onClick={() => {
+                        handleSwitchAccount(s.session.token);
+                        setIsMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-3 p-2 rounded-xl text-left transition-all text-xs font-semibold w-full
+                        ${isCurrent ? 'bg-secondary/40 border border-border/30 opacity-80' : 'hover:bg-secondary/80 active:scale-[0.98]'}`}
+                    >
+                      <Avatar className="w-6 h-6">
+                        <AvatarImage src={avatar || ''} />
+                        <AvatarFallback className="bg-primary/20 text-primary text-[10px] font-bold">
+                          {displayName?.[0] ?? "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="font-bold truncate text-foreground/90 leading-tight">{displayName}</span>
+                        <span className="text-muted-foreground text-[10px] truncate leading-none mt-0.5">@{username}</span>
+                      </div>
+                      {isCurrent && <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* アカウント追加ボタン */}
+            <button
+              onClick={() => {
+                handleAddAccount();
+                setIsMenuOpen(false);
+              }}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-foreground/80 hover:bg-secondary/60 hover:text-foreground transition-all w-full text-left"
+            >
+              <UserPlus className="w-4 h-4 text-muted-foreground" />
+              <span>アカウントを追加</span>
+            </button>
+
+            {/* ログアウトボタン */}
+            {me && (
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-destructive hover:bg-destructive/10 transition-all w-full text-left"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>@{me.username} からログアウト</span>
+              </button>
+            )}
+          </div>
         </SheetContent>
       </Sheet>
     </div>

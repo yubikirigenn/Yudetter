@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { db, usersTable, marketItemsTable, marketLikesTable, marketCommentsTable, notificationsTable, ydTransactionsTable } from "@workspace/db";
-import { eq, and, desc, isNull, gte, lte, sql, not } from "drizzle-orm";
+import { eq, and, desc, isNull, gte, lte, sql, not, inArray } from "drizzle-orm";
 import { requireAuth, optionalAuth } from "../lib/auth";
-import { buildUserProfile } from "../lib/buildResponse";
+import { buildUserProfile, buildUserProfilesBulk } from "../lib/buildResponse";
 import { addYudedollar } from "../lib/yudedollar";
 import { sseManager } from "../lib/sse";
 
@@ -183,6 +183,125 @@ async function buildMarketItemResponse(item: any, viewerUserId?: number) {
   };
 }
 
+/**
+ * マーケット出品物レスポンスをバルクで高速に整形するヘルパー (N+1問題を回避)
+ */
+async function buildMarketItemsResponseBulk(items: any[], viewerUserId?: number) {
+  if (items.length === 0) return [];
+
+  const itemIds = items.map((item) => item.id);
+
+  // 1. 全ユーザーIDを一括集計（出品者、購入者、最高入札者）
+  const userIds = new Set<number>();
+  for (const item of items) {
+    if (item.sellerId) userIds.add(item.sellerId);
+    if (item.buyerId) userIds.add(item.buyerId);
+    if (item.highestBidderId) userIds.add(item.highestBidderId);
+  }
+  const uniqueUserIds = Array.from(userIds);
+
+  // 2. ユーザープロフィールを一括取得
+  const userProfileMap = uniqueUserIds.length > 0
+    ? await buildUserProfilesBulk(uniqueUserIds, viewerUserId)
+    : new Map();
+
+  // 3. 各アイテムの取引履歴 (market_buy) の一括確認
+  const boughtChecksMap = new Map<number, boolean>();
+  if (viewerUserId && itemIds.length > 0) {
+    const boughtRows = await db
+      .select({ referenceId: ydTransactionsTable.referenceId })
+      .from(ydTransactionsTable)
+      .where(
+        and(
+          eq(ydTransactionsTable.userId, viewerUserId),
+          eq(ydTransactionsTable.type, "market_buy"),
+          inArray(ydTransactionsTable.referenceId, itemIds)
+        )
+      );
+    for (const row of boughtRows) {
+      if (row.referenceId) boughtChecksMap.set(row.referenceId, true);
+    }
+  }
+
+  // 4. いいね数、コメント数、閲覧ユーザーのいいね状況を一括集計
+  const likeCountsMap = new Map<number, number>();
+  const commentCountsMap = new Map<number, number>();
+  const userLikedMap = new Map<number, boolean>();
+
+  if (itemIds.length > 0) {
+    const [likeRows, commentRows, likedRows] = await Promise.all([
+      db
+        .select({ itemId: marketLikesTable.itemId, count: sql<number>`count(*)::int` })
+        .from(marketLikesTable)
+        .where(inArray(marketLikesTable.itemId, itemIds))
+        .groupBy(marketLikesTable.itemId),
+      db
+        .select({ itemId: marketCommentsTable.itemId, count: sql<number>`count(*)::int` })
+        .from(marketCommentsTable)
+        .where(inArray(marketCommentsTable.itemId, itemIds))
+        .groupBy(marketCommentsTable.itemId),
+      viewerUserId
+        ? db
+            .select({ itemId: marketLikesTable.itemId })
+            .from(marketLikesTable)
+            .where(
+              and(
+                eq(marketLikesTable.userId, viewerUserId),
+                inArray(marketLikesTable.itemId, itemIds)
+              )
+            )
+        : Promise.resolve([]),
+    ]);
+
+    for (const r of likeRows) likeCountsMap.set(r.itemId, r.count);
+    for (const r of commentRows) commentCountsMap.set(r.itemId, r.count);
+    for (const r of likedRows) userLikedMap.set(r.itemId, true);
+  }
+
+  // 5. 各レスポンスの組み立て
+  return items.map((item) => {
+    let isBought = false;
+    if (viewerUserId) {
+      if (item.saleType === "normal") {
+        isBought = boughtChecksMap.has(item.id);
+      } else if (item.saleType === "auction") {
+        const isFinished = item.status === "completed" || item.status === "sold";
+        const isWinner = item.buyerId === viewerUserId || item.highestBidderId === viewerUserId;
+        isBought = isFinished && isWinner;
+      }
+    }
+
+    const seller = userProfileMap.get(item.sellerId) || null;
+    const buyer = item.buyerId ? (userProfileMap.get(item.buyerId) || null) : null;
+    const highestBidder = item.highestBidderId ? (userProfileMap.get(item.highestBidderId) || null) : null;
+
+    return {
+      id: item.id,
+      seller,
+      buyer,
+      title: item.title,
+      description: item.description,
+      itemType: item.itemType,
+      itemData: item.itemData,
+      thumbnailUrl: item.thumbnailUrl,
+      price: item.price,
+      saleType: item.saleType,
+      status: item.status,
+      stock: item.stock,
+      auctionEndAt: item.auctionEndAt ? item.auctionEndAt.toISOString() : null,
+      highestBid: item.highestBid,
+      highestBidder,
+      buyoutPrice: item.buyoutPrice,
+      createdAt: item.createdAt.toISOString(),
+      updatedAt: item.updatedAt.toISOString(),
+      likeCount: likeCountsMap.get(item.id) ?? 0,
+      commentCount: commentCountsMap.get(item.id) ?? 0,
+      isLiked: userLikedMap.has(item.id),
+      isBought,
+    };
+  });
+}
+
 // GET /market/items - 出品一覧の取得
 router.get("/market/items", optionalAuth, async (req, res): Promise<void> => {
   try {
@@ -216,9 +335,7 @@ router.get("/market/items", optionalAuth, async (req, res): Promise<void> => {
       return targetStatus === "all" || item.status === targetStatus;
     });
 
-    const response = await Promise.all(
-      filteredItems.map((item) => buildMarketItemResponse(item, req.dbUserId))
-    );
+    const response = await buildMarketItemsResponseBulk(filteredItems, req.dbUserId);
 
     res.json(response);
   } catch (e) {

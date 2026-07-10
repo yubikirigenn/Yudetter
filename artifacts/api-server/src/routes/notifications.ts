@@ -2,7 +2,7 @@ import { Router } from "express";
 import { eq, desc, and, lt } from "drizzle-orm";
 import { db, notificationsTable, usersTable, yudatesTable } from "@workspace/db";
 import { requireAuth } from "../lib/auth";
-import { buildUserProfile, buildYudate } from "../lib/buildResponse";
+import { buildUserProfile, buildYudate, buildUserProfilesBulk, buildYudatePage } from "../lib/buildResponse";
 import { sseManager } from "../lib/sse";
 
 const router = Router();
@@ -41,22 +41,36 @@ router.get("/notifications", requireAuth, async (req, res): Promise<void> => {
   const pageRows = rows.slice(0, limit);
   const nextCursor = hasMore ? pageRows[pageRows.length - 1].id : null;
 
-  const items = await Promise.all(
-    pageRows.map(async (n) => {
-      const [actor, yudate] = await Promise.all([
-        buildUserProfile(n.actorId, req.dbUserId),
-        n.yudateId ? buildYudate(n.yudateId, req.dbUserId) : Promise.resolve(null),
-      ]);
-      return {
-        id: n.id,
-        type: n.type,
-        actor,
-        yudate,
-        read: n.read,
-        createdAt: n.createdAt.toISOString(),
-      };
-    }),
+  // 1. 全てのアクターIDとユデートIDを一括収集
+  const actorIds = Array.from(new Set(pageRows.map((n) => n.actorId)));
+  const yudateIds = Array.from(
+    new Set(pageRows.map((n) => n.yudateId).filter((id): id is number => id !== null && id !== undefined))
   );
+
+  // 2. アクターのプロフィールを一括取得 (N+1回避)
+  const actorProfileMap = actorIds.length > 0
+    ? await buildUserProfilesBulk(actorIds, req.dbUserId)
+    : new Map();
+
+  // 3. 紐づく投稿（yudate）を一括取得 (N+1回避)
+  const yudatePage = yudateIds.length > 0
+    ? await buildYudatePage(yudateIds, req.dbUserId, null)
+    : { items: [] };
+  const yudateMap = new Map(yudatePage.items.map((y) => [y.id, y]));
+
+  // 4. レスポンスの組み立て
+  const items = pageRows.map((n) => {
+    const actor = actorProfileMap.get(n.actorId) || null;
+    const yudate = n.yudateId ? (yudateMap.get(n.yudateId) || null) : null;
+    return {
+      id: n.id,
+      type: n.type,
+      actor,
+      yudate,
+      read: n.read,
+      createdAt: n.createdAt.toISOString(),
+    };
+  });
 
   res.json({ items, nextCursor });
 });
