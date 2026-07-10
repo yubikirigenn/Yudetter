@@ -292,7 +292,6 @@ export default function RankingsPage() {
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-bold text-foreground leading-snug flex items-center gap-1.5 truncate">
                         {row.user?.displayName}
-                        <UserBadge badgeType={row.user?.badgeType} />
                       </span>
                       <span className="text-xs text-muted-foreground">@{row.user?.username}</span>
                     </div>

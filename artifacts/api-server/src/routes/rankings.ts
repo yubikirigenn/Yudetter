@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db, usersTable, yudatesTable, followsTable } from "@workspace/db";
 import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
 import { requireAuth, optionalAuth } from "../lib/auth";
-import { buildUserProfile } from "../lib/buildResponse";
+import { buildUserProfile, buildUserProfilesBulk } from "../lib/buildResponse";
 import { getJstTodayRange, updateAllTimeBadge } from "../lib/yudedollar";
 
 const router = Router();
@@ -27,22 +27,23 @@ function getJstThisWeekStart(): Date {
 /**
  * ランキングデータ（ユーザープロフィール + スコア）を組み立てる
  */
-async function buildRankingList(
+/**
+ * ランキングデータ（ユーザープロフィール + スコア）を組み立てる
+ */
+function buildRankingList(
   dbRows: Array<{ userId: number; score: number }>,
-  viewerUserId?: number,
+  userProfileMap: Map<number, any>,
 ) {
   // 投稿数またはフォロワー増分が 0 のユーザーは非表示にする
   const filtered = dbRows.filter((row) => row.score > 0);
 
-  const results = await Promise.all(
-    filtered.map(async (row) => {
-      const user = await buildUserProfile(row.userId, viewerUserId);
-      return {
-        user,
-        score: row.score,
-      };
-    })
-  );
+  const results = filtered.map((row) => {
+    const user = userProfileMap.get(row.userId) || null;
+    return {
+      user,
+      score: row.score,
+    };
+  });
 
   // プロフィール取得に失敗したユーザーを排除
   return results.filter((r) => r.user !== null);
@@ -157,22 +158,30 @@ router.get("/rankings", optionalAuth, async (req, res): Promise<void> => {
       .orderBy(sql`count(${followsTable.followingId}) DESC`)
       .limit(20);
 
-    // 各ランキングデータを並列で構築
-    const [
-      dailyPost,
-      dailyFollow,
-      weeklyPost,
-      weeklyFollow,
-      allTimePost,
-      allTimeFollow,
-    ] = await Promise.all([
-      buildRankingList(dailyPostRows, req.dbUserId),
-      buildRankingList(dailyFollowRows, req.dbUserId),
-      buildRankingList(weeklyPostRows, req.dbUserId),
-      buildRankingList(weeklyFollowRows, req.dbUserId),
-      buildRankingList(allTimePostRows, req.dbUserId),
-      buildRankingList(allTimeFollowRows, req.dbUserId),
-    ]);
+    // 全てのランキングに含まれる一意のユーザーIDを抽出
+    const allUserIds = Array.from(
+      new Set([
+        ...dailyPostRows.map((r) => r.userId),
+        ...dailyFollowRows.map((r) => r.userId),
+        ...weeklyPostRows.map((r) => r.userId),
+        ...weeklyFollowRows.map((r) => r.userId),
+        ...allTimePostRows.map((r) => r.userId),
+        ...allTimeFollowRows.map((r) => r.userId),
+      ])
+    ).filter((id): id is number => id !== null && id !== undefined);
+
+    // ユーザープロフィールを一括取得 (N+1問題を回避して爆速化)
+    const userProfileMap = allUserIds.length > 0
+      ? await buildUserProfilesBulk(allUserIds, req.dbUserId)
+      : new Map();
+
+    // 各ランキングデータを同期的に構築
+    const dailyPost = buildRankingList(dailyPostRows, userProfileMap);
+    const dailyFollow = buildRankingList(dailyFollowRows, userProfileMap);
+    const weeklyPost = buildRankingList(weeklyPostRows, userProfileMap);
+    const weeklyFollow = buildRankingList(weeklyFollowRows, userProfileMap);
+    const allTimePost = buildRankingList(allTimePostRows, userProfileMap);
+    const allTimeFollow = buildRankingList(allTimeFollowRows, userProfileMap);
 
     res.json({
       daily: {

@@ -51,8 +51,8 @@ export default function SignUpPage() {
     }
 
     const cleanUsername = username.trim(); // 大小文字をそのまま保持
-    if (!/^[a-zA-Z0-9_]{3,20}$/.test(cleanUsername)) {
-      toast({ title: "ユーザーIDは3〜20文字の半角英数字とアンダースコアのみ使用できます。", variant: "destructive" });
+    if (!/^[a-zA-Z0-9_]{1,20}$/.test(cleanUsername)) {
+      toast({ title: "ユーザーIDは1〜20文字の半角英数字とアンダースコアのみ使用できます。", variant: "destructive" });
       return;
     }
 
