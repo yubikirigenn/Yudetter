@@ -52,13 +52,33 @@ router.post("/upload", requireAuth, upload.single("file"), async (req, res): Pro
         const cleanUrl = supabaseUrl.replace(/\/$/, "");
         const uploadUrl = `${cleanUrl}/storage/v1/object/${supabaseBucket}/${filename}`;
 
-        logger.info({ filename, bucket: supabaseBucket }, "Uploading to Supabase Storage...");
+        let mimeType = file.mimetype;
+        if (!mimeType || mimeType === "application/octet-stream" || mimeType === "blob") {
+          const mimeMap: Record<string, string> = {
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+            ".mov": "video/quicktime",
+            ".mp4": "video/mp4",
+            ".webm": "video/webm",
+            ".mp3": "audio/mpeg",
+            ".wav": "audio/wav",
+            ".m4a": "audio/x-m4a",
+            ".ogg": "audio/ogg",
+            ".aac": "audio/aac",
+          };
+          mimeType = mimeMap[ext] || "image/jpeg";
+        }
+
+        logger.info({ filename, bucket: supabaseBucket, mimeType }, "Uploading to Supabase Storage...");
         const uploadResponse = await fetch(uploadUrl, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${supabaseServiceKey}`,
             "apikey": supabaseServiceKey,
-            "Content-Type": file.mimetype,
+            "Content-Type": mimeType,
             "x-upsert": "true",
           },
           body: file.buffer,

@@ -72,6 +72,7 @@ export async function buildUserProfile(
 export async function buildUserProfilesBulk(
   userIds: number[],
   viewerUserId?: number,
+  isMinimal: boolean = false,
 ): Promise<Map<number, UserProfileShape>> {
   const result = new Map<number, UserProfileShape>();
   if (userIds.length === 0) return result;
@@ -80,12 +81,18 @@ export async function buildUserProfilesBulk(
   const users = await db.select().from(usersTable).where(inArray(usersTable.id, uniqueIds));
 
   const [followerCounts, followingCounts, yudateCounts, followChecks, blockingChecks, blockedByChecks] = await Promise.all([
-    db.select({ followingId: followsTable.followingId, count: sql<number>`count(*)::int` })
-      .from(followsTable).where(inArray(followsTable.followingId, uniqueIds)).groupBy(followsTable.followingId),
-    db.select({ followerId: followsTable.followerId, count: sql<number>`count(*)::int` })
-      .from(followsTable).where(inArray(followsTable.followerId, uniqueIds)).groupBy(followsTable.followerId),
-    db.select({ authorId: yudatesTable.authorId, count: sql<number>`count(*)::int` })
-      .from(yudatesTable).where(inArray(yudatesTable.authorId, uniqueIds)).groupBy(yudatesTable.authorId),
+    isMinimal
+      ? Promise.resolve([])
+      : db.select({ followingId: followsTable.followingId, count: sql<number>`count(*)::int` })
+          .from(followsTable).where(inArray(followsTable.followingId, uniqueIds)).groupBy(followsTable.followingId),
+    isMinimal
+      ? Promise.resolve([])
+      : db.select({ followerId: followsTable.followerId, count: sql<number>`count(*)::int` })
+          .from(followsTable).where(inArray(followsTable.followerId, uniqueIds)).groupBy(followsTable.followerId),
+    isMinimal
+      ? Promise.resolve([])
+      : db.select({ authorId: yudatesTable.authorId, count: sql<number>`count(*)::int` })
+          .from(yudatesTable).where(inArray(yudatesTable.authorId, uniqueIds)).groupBy(yudatesTable.authorId),
     viewerUserId
       ? db.select().from(followsTable).where(and(eq(followsTable.followerId, viewerUserId), inArray(followsTable.followingId, uniqueIds)))
       : Promise.resolve([]),
@@ -194,7 +201,7 @@ export async function buildYudatePage(
     ...yudates.map(y => y.authorId),
     ...Array.from(quotedMap.values()).map(qy => qy.authorId)
   ];
-  const userProfileMap = await buildUserProfilesBulk(allAuthorIds, viewerUserId);
+  const userProfileMap = await buildUserProfilesBulk(allAuthorIds, viewerUserId, true);
 
   // 2. Fetch all metadata (likes, reyudates, replies, reactions) in bulk
   const [likeCounts, reyudateCounts, replyCounts, userLikes, userReyudates, allReactions] = await Promise.all([
