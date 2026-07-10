@@ -64,7 +64,10 @@ router.patch("/users/me", requireAuth, async (req, res): Promise<void> => {
   const updates: Record<string, unknown> = {};
   if (parsed.data.displayName !== undefined) updates.displayName = parsed.data.displayName;
   if (parsed.data.bio !== undefined) updates.bio = parsed.data.bio;
-  if (parsed.data.avatarUrl !== undefined) updates.avatarUrl = parsed.data.avatarUrl;
+  if (parsed.data.avatarUrl !== undefined) {
+    updates.avatarUrl = parsed.data.avatarUrl;
+    updates.image = parsed.data.avatarUrl; // Better Auth session image sync
+  }
   if (parsed.data.headerUrl !== undefined) updates.headerUrl = parsed.data.headerUrl;
   if (parsed.data.isPrivate !== undefined) updates.isPrivate = parsed.data.isPrivate;
 

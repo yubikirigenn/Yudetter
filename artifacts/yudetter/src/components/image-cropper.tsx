@@ -83,6 +83,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, aspec
             crop={crop}
             zoom={zoom}
             aspect={aspectRatio}
+            cropShape={aspectRatio === 1 ? "round" : "rect"}
             onCropChange={onCropChange}
             onCropComplete={onCropCompleteCallback}
             onZoomChange={onZoomChange}
