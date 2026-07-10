@@ -111,6 +111,7 @@ export default function TermsPage() {
                   <li>本サービスのサーバーやネットワークの機能を破壊、または妨害する行為</li>
                   <li>虚偽のデータや、悪意あるプログラムをアップロード・送信する行為</li>
                   <li>当サービス内でのマネーロンダリングを目的とした取引行為</li>
+                  <li>当サービスの事前の許可なく、クローラーやスクレイピング等の自動化された手段を用いて、本サービス上の他の会員のデータ（テキスト、画像、音声、ゲーム等）を収集する行為</li>
                 </ul>
               </div>
             </AccordionContent>
@@ -118,15 +119,36 @@ export default function TermsPage() {
 
           <AccordionItem value="item-5" className="border border-border/60 rounded-2xl px-4 bg-card shadow-sm">
             <AccordionTrigger className="font-rounded font-bold text-sm hover:no-underline">
-              第5章 免責事項・雑則
+              第5章 BotおよびAIの利用
             </AccordionTrigger>
             <AccordionContent className="text-xs text-muted-foreground leading-relaxed flex flex-col gap-3.5 pt-2 pb-4">
               <div>
-                <h4 className="font-bold text-foreground mb-1">第10条（免責事項）</h4>
-                <p>当サービスは、本サービスに事実上または法律上の瑕疵（安全性、信頼性、正確性、完全性、有効性、特定の目的への適合性、セキュリティなどに関する欠陥、エラーやバグ、権利侵害などを含みます。）がないことを明示的にも黙示的にも保証しておりません。当サービスは、本サービスに関して会員に生じたあらゆる損害について、当サービスの故意または重大な過失による場合を除き、一切の責任を负いません。</p>
+                <h4 className="font-bold text-foreground mb-1">第10条（ユーザー投稿のAI学習に対する方針）</h4>
+                <p>当サービスは、会員が投稿したテキスト、画像、音声、作成されたゲーム等のあらゆるコンテンツについて、当サービスによる人工知能（AI）等の生成・開発用学習データとして使用しないことを保証します。</p>
               </div>
               <div>
-                <h4 className="font-bold text-foreground mb-1">第11条（準拠法・裁判管轄）</h4>
+                <h4 className="font-bold text-foreground mb-1">第11条（Bot（自動化プログラム）のアカウント利用ルール）</h4>
+                <p>当サービス上で自動化プログラム（以下「Bot」といいます）を用いた自動投稿や情報連携等を行うアカウントを作成し、運用することは許可されます。ただし、運用にあたっては以下のルールを厳守するものとします：</p>
+                <ul className="list-disc list-inside mt-1 pl-2 flex flex-col gap-1">
+                  <li>Botアカウントである旨を、プロフィール（自己紹介文等）に第三者が明確に認識できるように明記すること。</li>
+                  <li>本サービスのサーバーおよびネットワークに過度な負荷をかけるような高頻度のアクセスやリクエスト（API呼び出し等）を行わないこと。</li>
+                  <li>他のユーザーへの迷惑行為や、マーケットにおける不正な自動取引・価格操作等を目的とした動作をさせないこと。</li>
+                </ul>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="item-6" className="border border-border/60 rounded-2xl px-4 bg-card shadow-sm">
+            <AccordionTrigger className="font-rounded font-bold text-sm hover:no-underline">
+              第6章 免責事項・雑則
+            </AccordionTrigger>
+            <AccordionContent className="text-xs text-muted-foreground leading-relaxed flex flex-col gap-3.5 pt-2 pb-4">
+              <div>
+                <h4 className="font-bold text-foreground mb-1">第12条（免責事項）</h4>
+                <p>当サービスは、本サービスに事実上または法律上の瑕疵（安全性、信頼性、正確性、完全性、有効性、特定の目的への適合性、セキュリティなどに関する欠陥、エラーやバグ、権利侵害などを含みます。）がないことを明示的にも黙示的にも保証しておりません。当サービスは、本サービスに関して会員に生じたあらゆる損害について、当サービスの故意または重大な過失による場合を除き、一切の責任を負いません。</p>
+              </div>
+              <div>
+                <h4 className="font-bold text-foreground mb-1">第13条（準拠法・裁判管轄）</h4>
                 <p>本規約の解釈にあたっては、日本法を準拠法とします。本サービスに関して紛争が生じた場合には、当サービスの本店所在地を管轄する地方裁判所を専属的合意管轄とします。</p>
               </div>
             </AccordionContent>

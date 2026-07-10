@@ -274,17 +274,27 @@ export default function SetupPage() {
                               第4章 禁止事項
                             </AccordionTrigger>
                             <AccordionContent className="flex flex-col gap-2 pt-1 pb-3 text-[11px]">
-                              <p><strong>第9条（禁止行為）</strong>: 法令・公序良俗違反、他の会員への嫌がらせ、知的財産権侵害、なりすまし、サーバー攻撃、マネーロンダリング等は固く禁止します。</p>
+                              <p><strong>第9条（禁止行為）</strong>: 法令・公序良俗違反、他の会員への嫌がらせ、知的財産権侵害、なりすまし、サーバー攻撃、マネーロンダリング等は固く禁止します。また、当サービスの許可なくスクレイピング等の自動化ツールを用いて他の会員 of データ（テキスト、画像、音声、ゲーム等）を収集する行為を禁止します。</p>
                             </AccordionContent>
                           </AccordionItem>
 
                           <AccordionItem value="item-5" className="border border-border/60 rounded-xl px-4 bg-card">
                             <AccordionTrigger className="font-rounded font-bold text-xs hover:no-underline">
-                              第5章 免責事項・雑則
+                              第5章 BotおよびAI of 利用
                             </AccordionTrigger>
                             <AccordionContent className="flex flex-col gap-2 pt-1 pb-3 text-[11px]">
-                              <p><strong>第10条（免責事項）</strong>: 当サービスは、本サービスにバグや不具合がないことを保証せず、利用に伴ういかなる損害も故意・重過失を除き免責されます。</p>
-                              <p><strong>第11条（準拠法・裁判管轄）</strong>: 日本法を準拠法とし、東京地方裁判所を専属的合意管轄とします。</p>
+                              <p><strong>第10条（ユーザー投稿のAI学習に対する方針）</strong>: 当サービスは、会員が投稿したテキスト、画像、音声、作成されたゲーム等のコンテンツについて、当サービスによる人工知能（AI）等の生成・学習用データとして使用しないことを保証します。</p>
+                              <p><strong>第11条（Botのアカウント利用ルール）</strong>: Bot等の自動化プログラムを用いた自動投稿アカウント等の作成・運用は許可されますが、自己紹介文等にBotである旨を明記し、サーバーへ過度な負荷をかけるアクセスやAPI要求を行わない必要があります。</p>
+                            </AccordionContent>
+                          </AccordionItem>
+
+                          <AccordionItem value="item-6" className="border border-border/60 rounded-xl px-4 bg-card">
+                            <AccordionTrigger className="font-rounded font-bold text-xs hover:no-underline">
+                              第6章 免責事項・雑則
+                            </AccordionTrigger>
+                            <AccordionContent className="flex flex-col gap-2 pt-1 pb-3 text-[11px]">
+                              <p><strong>第12条（免責事項）</strong>: 当サービスは、本サービスにバグや不具合がないことを保証せず、利用に伴ういかなる損害も故意・重過失を除き免責されます。</p>
+                              <p><strong>第13条（準拠法・裁判管轄）</strong>: 日本法を準拠法とし、東京地方裁判所を専属的合意管轄とします。</p>
                             </AccordionContent>
                           </AccordionItem>
                         </Accordion>
