@@ -310,20 +310,38 @@ export default function YudateComposer({
             ) : (
               <>
                 {/* Image */}
-                <label className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`} title="画像">
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
+                  title="画像"
+                  disabled={!!imageUrl}
+                >
                   <Image className="w-5 h-5" />
-                  <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} disabled={!!imageUrl} />
-                </label>
+                  <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+                </button>
                 {/* Video */}
-                <label className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`} title="動画">
+                <button
+                  type="button"
+                  onClick={() => videoInputRef.current?.click()}
+                  className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
+                  title="動画"
+                  disabled={!!imageUrl}
+                >
                   <Video className="w-5 h-5" />
-                  <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={handleFileSelect} disabled={!!imageUrl} />
-                </label>
+                  <input ref={videoInputRef} type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden" onChange={handleFileSelect} />
+                </button>
                 {/* Audio */}
-                <label className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`} title="音声">
+                <button
+                  type="button"
+                  onClick={() => audioInputRef.current?.click()}
+                  className={`p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer ${!!imageUrl ? 'opacity-40 pointer-events-none' : ''}`}
+                  title="音声"
+                  disabled={!!imageUrl}
+                >
                   <Mic className="w-5 h-5" />
-                  <input ref={audioInputRef} type="file" accept="audio/mpeg,audio/wav,audio/m4a,audio/ogg" className="hidden" onChange={handleFileSelect} disabled={!!imageUrl} />
-                </label>
+                  <input ref={audioInputRef} type="file" accept="audio/mpeg,audio/wav,audio/m4a,audio/ogg" className="hidden" onChange={handleFileSelect} />
+                </button>
                 {/* Super Yudate */}
                 {replyToId && !isReplyToReply && (
                   <Popover>
