@@ -18,6 +18,8 @@ export const yudatesTable = pgTable("yudates", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (t) => [
   index("yudates_author_id_idx").on(t.authorId),
+  index("yudates_reply_to_id_idx").on(t.replyToId),
+  index("yudates_quoted_yudate_id_idx").on(t.quotedYudateId),
 ]);
 
 export const insertYudateSchema = createInsertSchema(yudatesTable).omit({ id: true, createdAt: true });
