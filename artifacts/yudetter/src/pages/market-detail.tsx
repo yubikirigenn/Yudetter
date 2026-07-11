@@ -432,7 +432,7 @@ export default function MarketDetailPage() {
 
       {/* 購入・入札・クレームボタン (購入・保留など状況に応じたUI) */}
       <div className="flex flex-col gap-3">
-        {item.status === "selling" && !isSeller && (
+        {item.status === "selling" && !isSeller && !item.isBought && (
           <div className="flex flex-col sm:flex-row gap-3 w-full">
             <Button
               onClick={() => {
@@ -668,12 +668,6 @@ export default function MarketDetailPage() {
             </div>
           ) : (
             <div className="flex flex-col p-6 gap-6 relative">
-              <button
-                onClick={() => setIsPurchaseModalOpen(false)}
-                className="absolute right-4 top-4 text-muted-foreground hover:text-foreground rounded-full p-1 hover:bg-secondary transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
 
               <DialogHeader>
                 <DialogTitle className="text-lg font-bold font-rounded text-center flex items-center justify-center gap-1.5">

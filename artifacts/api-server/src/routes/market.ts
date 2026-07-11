@@ -491,6 +491,24 @@ router.post("/market/items/:id/purchase", requireAuth, async (req, res): Promise
 
     if (item.saleType === "normal") {
       // 1. 通常販売の購入処理
+      // 二重購入チェック
+      const [alreadyBought] = await db
+        .select({ id: ydTransactionsTable.id })
+        .from(ydTransactionsTable)
+        .where(
+          and(
+            eq(ydTransactionsTable.userId, req.dbUserId!),
+            eq(ydTransactionsTable.type, "market_buy"),
+            eq(ydTransactionsTable.referenceId, id)
+          )
+        )
+        .limit(1);
+
+      if (alreadyBought) {
+        res.status(400).json({ error: "この商品は既に購入済みです" });
+        return;
+      }
+
       if (item.status !== "selling") {
         res.status(400).json({ error: "この商品は既に販売終了または保留中であるため購入できません" });
         return;
