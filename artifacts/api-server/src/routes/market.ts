@@ -66,7 +66,17 @@ async function checkAndResolveAuction(itemId: number): Promise<any> {
           return updated;
         } else {
           // 通常のアイテム（画像・ゲーム）の場合：即時完了
-          // 出品者に売却代金を支払う (入札時に入札者からは引き去り済み)
+          // 落札者から代金を引き落とし
+          await addYudedollar(
+            item.highestBidderId,
+            -item.highestBid,
+            "market_buy",
+            `オークション落札購入: ${item.title}`,
+            itemId,
+            tx,
+          );
+
+          // 出品者に売却代金を支払う
           await addYudedollar(
             item.sellerId,
             item.highestBid,
@@ -605,17 +615,6 @@ router.post("/market/items/:id/purchase", requireAuth, async (req, res): Promise
       }
 
       await db.transaction(async (tx) => {
-        // 前の最高入札者がいる場合は返金
-        if (item.highestBidderId && item.highestBid && item.highestBid > 0) {
-          await addYudedollar(
-            item.highestBidderId,
-            item.highestBid,
-            "market_bid_refund",
-            `オークション入札超過返金: ${item.title}`,
-            id,
-            tx,
-          );
-        }
 
         if (isBuyout) {
           // 即決落札
@@ -675,16 +674,7 @@ router.post("/market/items/:id/purchase", requireAuth, async (req, res): Promise
               .where(eq(marketItemsTable.id, id));
           }
         } else {
-          // 通常入札
-          await addYudedollar(
-            req.dbUserId!,
-            -actualPayment,
-            "market_buy",
-            `オークション入札: ${item.title}`,
-            id,
-            tx,
-          );
-
+          // 通常入札 (入札中はお金を引かず、落札解決時に引くように変更)
           await tx
             .update(marketItemsTable)
             .set({
@@ -889,8 +879,18 @@ router.post("/market/items/:id/claim-id", requireAuth, async (req, res): Promise
         .set({ username: cleanUsername, updatedAt: new Date() })
         .where(eq(usersTable.id, req.dbUserId!));
 
-      // 出品者に売却代金を支払う
+      // 購入者から落札代金を引き落とし
       const finalPrice = item.highestBid || item.price;
+      await addYudedollar(
+        req.dbUserId!,
+        -finalPrice,
+        "market_buy",
+        `ユーザーID購入支払い: @${cleanUsername}`,
+        id,
+        tx,
+      );
+
+      // 出品者に売却代金を支払う
       await addYudedollar(
         item.sellerId,
         finalPrice,
@@ -942,20 +942,7 @@ router.delete("/market/items/:id", requireAuth, async (req, res): Promise<void> 
       return;
     }
 
-    // トランザクションで削除、もし最高入札者がいる場合は返金
-    await db.transaction(async (tx) => {
-      if (item.saleType === "auction" && item.highestBidderId && item.highestBid && item.highestBid > 0) {
-        await addYudedollar(
-          item.highestBidderId,
-          item.highestBid,
-          "market_bid_refund",
-          `出品削除に伴うオークション返金: ${item.title}`,
-          id,
-          tx,
-        );
-      }
-      await tx.delete(marketItemsTable).where(eq(marketItemsTable.id, id));
-    });
+    await db.delete(marketItemsTable).where(eq(marketItemsTable.id, id));
 
     res.json({ success: true, message: "出品商品を削除しました" });
   } catch (e) {
