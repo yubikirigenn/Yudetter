@@ -56,8 +56,27 @@ import {
 } from "./ui/tooltip";
 import { Crown, Trophy, Medal } from "lucide-react";
 
-export const VerifiedBadge = ({ isVerified, className }: { isVerified?: boolean; className?: string }) => {
+export const VerifiedBadge = ({
+  isVerified,
+  className,
+  displayName,
+}: {
+  isVerified?: boolean;
+  className?: string;
+  displayName?: string;
+}) => {
   if (!isVerified) return null;
+
+  const isParenthesis = displayName ? (
+    displayName.trim().endsWith(")") ||
+    displayName.trim().endsWith("）") ||
+    displayName.trim().endsWith("」") ||
+    displayName.trim().endsWith("』") ||
+    displayName.trim().endsWith("]") ||
+    displayName.trim().endsWith("］")
+  ) : false;
+
+  const marginClass = isParenthesis ? "-ml-2.5" : "ml-1";
 
   return (
     <Tooltip>
@@ -65,7 +84,7 @@ export const VerifiedBadge = ({ isVerified, className }: { isVerified?: boolean;
         <img
           src="/verified.png"
           alt="公式マーク"
-          className={`shrink-0 select-none aspect-square object-contain -ml-2 translate-y-[1px] ${className || "w-[1.7em] h-[1.7em]"}`}
+          className={`shrink-0 select-none aspect-square object-contain translate-y-[1px] ${marginClass} ${className || "w-[1.7em] h-[1.7em]"}`}
           draggable={false}
         />
       </TooltipTrigger>
@@ -749,7 +768,7 @@ export default function YudateCard({
               )}
               <Link href={`/profile/${yudate.author.username}`} className="font-bold hover:underline truncate z-10 max-w-[120px] sm:max-w-none inline-flex items-center gap-1">
                 <span>{yudate.author.displayName}</span>
-                <VerifiedBadge isVerified={(yudate.author as any).isVerified} />
+                <VerifiedBadge isVerified={(yudate.author as any).isVerified} displayName={yudate.author.displayName} />
                 <UserBadge badgeType={(yudate.author as any).badgeType} />
                 {yudate.author.isPrivate && <Lock className="w-4 h-4 text-muted-foreground" />}
               </Link>

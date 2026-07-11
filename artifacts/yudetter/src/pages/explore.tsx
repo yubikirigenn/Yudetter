@@ -147,7 +147,7 @@ export default function ExplorePage() {
                     <div>
                       <div className="font-bold text-foreground flex items-center gap-1">
                         <span>{user.displayName}</span>
-                        <VerifiedBadge isVerified={user.isVerified} />
+                        <VerifiedBadge isVerified={user.isVerified} displayName={user.displayName} />
                       </div>
                       <div className="text-sm text-muted-foreground">@{user.username}</div>
                       {user.bio && <div className="text-sm mt-1 text-foreground">{user.bio}</div>}
