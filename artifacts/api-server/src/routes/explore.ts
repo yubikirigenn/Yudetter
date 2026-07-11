@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { desc, asc, and, isNull, ilike, or, sql, eq, count, lte, gt } from "drizzle-orm";
-import { db, yudatesTable, usersTable, likesTable } from "@workspace/db";
+import { desc, asc, and, isNull, ilike, or, sql, eq, count, lte, gt, inArray } from "drizzle-orm";
+import { db, yudatesTable, usersTable, likesTable, followsTable } from "@workspace/db";
 import { optionalAuth } from "../lib/auth";
 import { buildYudatePage, buildUserProfile } from "../lib/buildResponse";
 import { getBlockedUserIds } from "../lib/blocks";
@@ -16,9 +16,31 @@ router.get("/explore/popular", optionalAuth, async (req, res): Promise<void> => 
   const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
   const blockedIds = await getBlockedUserIds(req.dbUserId);
   const blockCondition = blockedIds.length > 0 ? notInArray(yudatesTable.authorId, blockedIds) : undefined;
+
+  const followed = req.dbUserId
+    ? await db
+        .select({ followingId: followsTable.followingId })
+        .from(followsTable)
+        .where(and(eq(followsTable.followerId, req.dbUserId), eq(followsTable.status, "accepted")))
+    : [];
+  const followedIds = followed.map((f) => f.followingId);
+
+  const allowedAuthorCondition = req.dbUserId
+    ? or(
+        eq(yudatesTable.authorId, req.dbUserId),
+        eq(usersTable.isPrivate, false),
+        isNull(usersTable.isPrivate),
+        followedIds.length > 0 ? inArray(yudatesTable.authorId, followedIds) : undefined
+      )
+    : or(
+        eq(usersTable.isPrivate, false),
+        isNull(usersTable.isPrivate)
+      );
+
   const rows = await db
     .select({ id: yudatesTable.id, likeCount: count(likesTable.yudateId) })
     .from(yudatesTable)
+    .innerJoin(usersTable, eq(yudatesTable.authorId, usersTable.id))
     .leftJoin(likesTable, eq(likesTable.yudateId, yudatesTable.id))
     .where(
       and(
@@ -26,10 +48,11 @@ router.get("/explore/popular", optionalAuth, async (req, res): Promise<void> => 
         eq(yudatesTable.visibility, "public"),
         or(isNull(yudatesTable.scheduledFor), lte(yudatesTable.scheduledFor, now)),
         or(isNull(yudatesTable.autoDeleteAt), gt(yudatesTable.autoDeleteAt, now)),
+        allowedAuthorCondition,
         blockCondition
       )
     )
-    .groupBy(yudatesTable.id)
+    .groupBy(yudatesTable.id, usersTable.isPrivate)
     .orderBy(
       sql`CASE WHEN ${yudatesTable.createdAt} >= ${fortyEightHoursAgo} AND count(${likesTable.yudateId}) >= 1 THEN 1 ELSE 0 END DESC`,
       desc(count(likesTable.yudateId)),
@@ -53,9 +76,30 @@ router.get("/explore", optionalAuth, async (req, res): Promise<void> => {
   const blockedIds = await getBlockedUserIds(req.dbUserId);
   const blockCondition = blockedIds.length > 0 ? notInArray(yudatesTable.authorId, blockedIds) : undefined;
 
+  const followed = req.dbUserId
+    ? await db
+        .select({ followingId: followsTable.followingId })
+        .from(followsTable)
+        .where(and(eq(followsTable.followerId, req.dbUserId), eq(followsTable.status, "accepted")))
+    : [];
+  const followedIds = followed.map((f) => f.followingId);
+
+  const allowedAuthorCondition = req.dbUserId
+    ? or(
+        eq(yudatesTable.authorId, req.dbUserId),
+        eq(usersTable.isPrivate, false),
+        isNull(usersTable.isPrivate),
+        followedIds.length > 0 ? inArray(yudatesTable.authorId, followedIds) : undefined
+      )
+    : or(
+        eq(usersTable.isPrivate, false),
+        isNull(usersTable.isPrivate)
+      );
+
   const rows = await db
     .select({ id: yudatesTable.id })
     .from(yudatesTable)
+    .innerJoin(usersTable, eq(yudatesTable.authorId, usersTable.id))
     .where(
       and(
         isNull(yudatesTable.replyToId),
@@ -63,6 +107,7 @@ router.get("/explore", optionalAuth, async (req, res): Promise<void> => {
         eq(yudatesTable.visibility, "public"),
         or(isNull(yudatesTable.scheduledFor), lte(yudatesTable.scheduledFor, now)),
         or(isNull(yudatesTable.autoDeleteAt), gt(yudatesTable.autoDeleteAt, now)),
+        allowedAuthorCondition,
         blockCondition
       ),
     )
@@ -91,6 +136,27 @@ router.get("/explore/search", optionalAuth, async (req, res): Promise<void> => {
   const blockedIds = await getBlockedUserIds(req.dbUserId);
   const blockCondition = blockedIds.length > 0 ? notInArray(yudatesTable.authorId, blockedIds) : undefined;
   const now = new Date();
+  const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+  const followed = req.dbUserId
+    ? await db
+        .select({ followingId: followsTable.followingId })
+        .from(followsTable)
+        .where(and(eq(followsTable.followerId, req.dbUserId), eq(followsTable.status, "accepted")))
+    : [];
+  const followedIds = followed.map((f) => f.followingId);
+
+  const allowedAuthorCondition = req.dbUserId
+    ? or(
+        eq(yudatesTable.authorId, req.dbUserId),
+        eq(usersTable.isPrivate, false),
+        isNull(usersTable.isPrivate),
+        followedIds.length > 0 ? inArray(yudatesTable.authorId, followedIds) : undefined
+      )
+    : or(
+        eq(usersTable.isPrivate, false),
+        isNull(usersTable.isPrivate)
+      );
 
   let yudateIds: number[] = [];
   let userRows: { id: number }[] = [];
@@ -113,6 +179,7 @@ router.get("/explore/search", optionalAuth, async (req, res): Promise<void> => {
       const rows = await db
         .select({ id: yudatesTable.id, likeCount: count(likesTable.yudateId) })
         .from(yudatesTable)
+        .innerJoin(usersTable, eq(yudatesTable.authorId, usersTable.id))
         .leftJoin(likesTable, eq(likesTable.yudateId, yudatesTable.id))
         .where(
           and(
@@ -121,10 +188,11 @@ router.get("/explore/search", optionalAuth, async (req, res): Promise<void> => {
             eq(yudatesTable.visibility, "public"),
             or(isNull(yudatesTable.scheduledFor), lte(yudatesTable.scheduledFor, now)),
             or(isNull(yudatesTable.autoDeleteAt), gt(yudatesTable.autoDeleteAt, now)),
+            allowedAuthorCondition,
             blockCondition
           )
         )
-        .groupBy(yudatesTable.id)
+        .groupBy(yudatesTable.id, usersTable.isPrivate)
         .orderBy(
           sql`CASE WHEN ${yudatesTable.createdAt} >= ${fortyEightHoursAgo} AND count(${likesTable.yudateId}) >= 1 THEN 1 ELSE 0 END DESC`,
           desc(count(likesTable.yudateId)),
@@ -137,6 +205,7 @@ router.get("/explore/search", optionalAuth, async (req, res): Promise<void> => {
       const rows = await db
         .select({ id: yudatesTable.id })
         .from(yudatesTable)
+        .innerJoin(usersTable, eq(yudatesTable.authorId, usersTable.id))
         .where(
           and(
             ilike(yudatesTable.content, pattern),
@@ -144,6 +213,7 @@ router.get("/explore/search", optionalAuth, async (req, res): Promise<void> => {
             eq(yudatesTable.visibility, "public"),
             or(isNull(yudatesTable.scheduledFor), lte(yudatesTable.scheduledFor, now)),
             or(isNull(yudatesTable.autoDeleteAt), gt(yudatesTable.autoDeleteAt, now)),
+            allowedAuthorCondition,
             blockCondition
           )
         )

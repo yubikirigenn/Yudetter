@@ -38,7 +38,12 @@ router.get("/yudates", optionalAuth, async (req, res): Promise<void> => {
     const followed = await db
       .select({ followingId: followsTable.followingId })
       .from(followsTable)
-      .where(eq(followsTable.followerId, req.dbUserId));
+      .where(
+        and(
+          eq(followsTable.followerId, req.dbUserId),
+          eq(followsTable.status, "accepted")
+        )
+      );
 
     const followedIds = followed.map((f) => f.followingId);
     const authorIds = [...followedIds, req.dbUserId];
@@ -68,11 +73,13 @@ router.get("/yudates", optionalAuth, async (req, res): Promise<void> => {
     rows = await db
       .select({ id: yudatesTable.id })
       .from(yudatesTable)
+      .innerJoin(usersTable, eq(yudatesTable.authorId, usersTable.id))
       .where(
         and(
           isNull(yudatesTable.replyToId),
           cursor ? lt(yudatesTable.id, cursor) : undefined,
           eq(yudatesTable.visibility, "public"),
+          or(eq(usersTable.isPrivate, false), isNull(usersTable.isPrivate)),
           or(isNull(yudatesTable.scheduledFor), lte(yudatesTable.scheduledFor, now)),
           or(isNull(yudatesTable.autoDeleteAt), gt(yudatesTable.autoDeleteAt, now)),
         ),
@@ -159,6 +166,35 @@ router.get("/yudates/:id", optionalAuth, async (req, res): Promise<void> => {
 
   const now = new Date();
   if (result.author.id !== req.dbUserId) {
+    // 投稿者の非公開（鍵垢）チェック
+    const [author] = await db
+      .select({ isPrivate: usersTable.isPrivate })
+      .from(usersTable)
+      .where(eq(usersTable.id, result.author.id))
+      .limit(1);
+
+    if (author && author.isPrivate) {
+      if (!req.dbUserId) {
+        res.status(404).json({ error: "Not found" });
+        return;
+      }
+      const [follow] = await db
+        .select()
+        .from(followsTable)
+        .where(
+          and(
+            eq(followsTable.followerId, req.dbUserId),
+            eq(followsTable.followingId, result.author.id),
+            eq(followsTable.status, "accepted")
+          )
+        )
+        .limit(1);
+      if (!follow) {
+        res.status(404).json({ error: "Not found" });
+        return;
+      }
+    }
+
     if (result.scheduledFor && new Date(result.scheduledFor) > now) {
       res.status(404).json({ error: "Not found" });
       return;
