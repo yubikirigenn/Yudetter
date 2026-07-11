@@ -52,7 +52,7 @@ const VerifiedBadge = ({ isVerified, className }: { isVerified?: boolean; classN
         <img
           src="/verified.png"
           alt="公式マーク"
-          className={`shrink-0 select-none align-middle aspect-square object-contain -ml-1.5 ${className || "w-[1.5em] h-[1.5em]"}`}
+          className={`shrink-0 select-none aspect-square object-contain -ml-3 translate-y-[2px] ${className || "w-[2em] h-[2em]"}`}
           draggable={false}
         />
       </TooltipTrigger>
