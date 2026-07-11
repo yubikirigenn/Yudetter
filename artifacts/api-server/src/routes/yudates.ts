@@ -628,9 +628,16 @@ router.post("/yudates/:id/report", requireAuth, async (req, res): Promise<void> 
         name: "Yudetter Admin",
         email: "admin@yudetter.internal",
         setupComplete: true,
+        isVerified: true,
       })
       .returning();
     admin = inserted;
+  } else if (!admin.isVerified) {
+    await db
+      .update(usersTable)
+      .set({ isVerified: true, updatedAt: new Date() })
+      .where(eq(usersTable.id, admin.id));
+    admin.isVerified = true;
   }
 
   // 通知を送信

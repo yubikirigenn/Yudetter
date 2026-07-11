@@ -23,6 +23,7 @@ export type UserProfileShape = {
   pinnedYudateId: number | null;
   yudedollar: number;
   badgeType: string | null;
+  isVerified: boolean;
   consecutiveLoginDays: number;
   rankingOptIn: boolean;
   createdAt: string;
@@ -135,7 +136,8 @@ export async function buildUserProfilesBulk(
       isBlockedBy: blockedByCheckSet.has(user.id),
       pinnedYudateId: user.pinnedYudateId ?? null,
       yudedollar: user.yudedollar ?? 0,
-      badgeType: user.badgeType ?? null,
+       badgeType: user.badgeType ?? null,
+      isVerified: user.isVerified ?? false,
       consecutiveLoginDays: user.consecutiveLoginDays ?? 0,
       rankingOptIn: user.rankingOptIn ?? false,
       createdAt: user.createdAt.toISOString(),

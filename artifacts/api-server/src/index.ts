@@ -17,6 +17,29 @@ app.listen(port, (err) => {
 
   logger.info({ port }, "Server listening");
 
+  // Yudetter アカウントの公式マーク自動付与処理 (テスト用)
+  (async () => {
+    try {
+      const { db, usersTable } = await import("@workspace/db");
+      const { eq } = await import("drizzle-orm");
+      const [admin] = await db
+        .select({ id: usersTable.id, isVerified: usersTable.isVerified })
+        .from(usersTable)
+        .where(eq(usersTable.username, "Yudetter"))
+        .limit(1);
+
+      if (admin && !admin.isVerified) {
+        await db
+          .update(usersTable)
+          .set({ isVerified: true, updatedAt: new Date() })
+          .where(eq(usersTable.id, admin.id));
+        logger.info("@Yudetter has been verified successfully on startup");
+      }
+    } catch (e) {
+      logger.error({ err: e }, "Failed to verify @Yudetter on startup");
+    }
+  })();
+
   // Keep-alive self-ping for Render free tier
   const appUrl = process.env.APP_URL;
   if (appUrl) {

@@ -56,6 +56,26 @@ import {
 } from "./ui/tooltip";
 import { Crown, Trophy, Medal } from "lucide-react";
 
+export const VerifiedBadge = ({ isVerified }: { isVerified?: boolean }) => {
+  if (!isVerified) return null;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger className="cursor-pointer inline-flex items-center" asChild>
+        <img
+          src="/verified.png"
+          alt="公式マーク"
+          className="w-4 h-4 shrink-0 select-none align-middle"
+          draggable={false}
+        />
+      </TooltipTrigger>
+      <TooltipContent side="top" className="text-[11px] rounded-xl font-bold p-2 bg-popover text-popover-foreground border border-border shadow-md select-none">
+        認証済みアカウント
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
 export const UserBadge = ({ badgeType }: { badgeType: string | null | undefined }) => {
   if (!badgeType) return null;
 
@@ -729,6 +749,7 @@ export default function YudateCard({
               )}
               <Link href={`/profile/${yudate.author.username}`} className="font-bold hover:underline truncate z-10 max-w-[120px] sm:max-w-none inline-flex items-center gap-1">
                 <span>{yudate.author.displayName}</span>
+                <VerifiedBadge isVerified={(yudate.author as any).isVerified} />
                 <UserBadge badgeType={(yudate.author as any).badgeType} />
                 {yudate.author.isPrivate && <Lock className="w-4 h-4 text-muted-foreground" />}
               </Link>

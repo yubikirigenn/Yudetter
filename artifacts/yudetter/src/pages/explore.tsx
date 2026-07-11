@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearch, useGetExploreInfinite } from "@workspace/api-client-react";
 import { Search as SearchIcon, Loader2 } from "lucide-react";
-import YudateCard from "@/components/yudate-card";
+import YudateCard, { VerifiedBadge } from "@/components/yudate-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import InfiniteScrollObserver from "@/components/infinite-scroll-observer";
 import { Link } from "wouter";
@@ -145,7 +145,10 @@ export default function ExplorePage() {
                       <AvatarFallback className="bg-primary/20 text-primary font-bold">{user.displayName[0]}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-bold text-foreground">{user.displayName}</div>
+                      <div className="font-bold text-foreground flex items-center gap-1">
+                        <span>{user.displayName}</span>
+                        <VerifiedBadge isVerified={user.isVerified} />
+                      </div>
                       <div className="text-sm text-muted-foreground">@{user.username}</div>
                       {user.bio && <div className="text-sm mt-1 text-foreground">{user.bio}</div>}
                     </div>

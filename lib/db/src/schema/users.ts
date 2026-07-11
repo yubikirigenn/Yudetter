@@ -23,6 +23,7 @@ export const usersTable = pgTable("users", {
   lastLoginDate: text("last_login_date"), // 最終ログイン日 (JST: YYYY-MM-DD)
   consecutiveLoginDays: integer("consecutive_login_days").default(0).notNull(), // 連続ログイン日数
   rankingOptIn: boolean("ranking_opt_in").default(false).notNull(), // ランキング参加設定
+  isVerified: boolean("is_verified").default(false).notNull(), // 公式マークの有無
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

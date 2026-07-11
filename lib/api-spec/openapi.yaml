@@ -1059,6 +1059,8 @@ components:
           type: boolean
         isBlockedBy:
           type: boolean
+        isVerified:
+          type: boolean
         pinnedYudateId:
           type: ["integer", "null"]
         headerUrl:
