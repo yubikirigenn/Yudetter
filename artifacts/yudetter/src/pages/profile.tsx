@@ -52,7 +52,7 @@ const VerifiedBadge = ({ isVerified, className }: { isVerified?: boolean; classN
         <img
           src="/verified.png"
           alt="公式マーク"
-          className={`shrink-0 select-none align-middle aspect-square object-contain ${className || "w-4 h-4"}`}
+          className={`shrink-0 select-none align-middle aspect-square object-contain ${className || "w-[1.3em] h-[1.3em]"}`}
           draggable={false}
         />
       </TooltipTrigger>
@@ -293,7 +293,7 @@ export default function ProfilePage() {
         <div className="flex flex-col justify-center px-4 h-[53px]">
           <h1 className="font-bold text-xl leading-tight truncate flex items-center gap-1">
             {profile.displayName}
-            <VerifiedBadge isVerified={profile.isVerified} className="w-5 h-5" />
+            <VerifiedBadge isVerified={profile.isVerified} />
             <UserBadge badgeType={profile.badgeType} />
             {profile?.isPrivate && <Lock className="w-4 h-4 text-muted-foreground" />}
           </h1>
@@ -377,7 +377,7 @@ export default function ProfilePage() {
         <div className="mb-4">
           <h2 className="font-bold text-xl flex items-center gap-1">
             {profile.displayName}
-            <VerifiedBadge isVerified={profile.isVerified} className="w-5 h-5" />
+            <VerifiedBadge isVerified={profile.isVerified} />
             <UserBadge badgeType={profile.badgeType} />
             {profile?.isPrivate && <Lock className="w-5 h-5 text-muted-foreground ml-1" />}
           </h2>
