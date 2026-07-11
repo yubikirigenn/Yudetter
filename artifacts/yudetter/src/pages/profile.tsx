@@ -43,7 +43,7 @@ import ImageCropDialog from "@/components/image-crop-dialog";
 import { Pin } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const VerifiedBadge = ({ isVerified }: { isVerified?: boolean }) => {
+const VerifiedBadge = ({ isVerified, className }: { isVerified?: boolean; className?: string }) => {
   if (!isVerified) return null;
 
   return (
@@ -52,7 +52,7 @@ const VerifiedBadge = ({ isVerified }: { isVerified?: boolean }) => {
         <img
           src="/verified.png"
           alt="公式マーク"
-          className="w-4 h-4 shrink-0 select-none align-middle"
+          className={`shrink-0 select-none align-middle aspect-square object-contain ${className || "w-4 h-4"}`}
           draggable={false}
         />
       </TooltipTrigger>
@@ -293,7 +293,7 @@ export default function ProfilePage() {
         <div className="flex flex-col justify-center px-4 h-[53px]">
           <h1 className="font-bold text-xl leading-tight truncate flex items-center gap-1">
             {profile.displayName}
-            <VerifiedBadge isVerified={profile.isVerified} />
+            <VerifiedBadge isVerified={profile.isVerified} className="w-5 h-5" />
             <UserBadge badgeType={profile.badgeType} />
             {profile?.isPrivate && <Lock className="w-4 h-4 text-muted-foreground" />}
           </h1>
@@ -377,7 +377,7 @@ export default function ProfilePage() {
         <div className="mb-4">
           <h2 className="font-bold text-xl flex items-center gap-1">
             {profile.displayName}
-            <VerifiedBadge isVerified={profile.isVerified} />
+            <VerifiedBadge isVerified={profile.isVerified} className="w-5 h-5" />
             <UserBadge badgeType={profile.badgeType} />
             {profile?.isPrivate && <Lock className="w-5 h-5 text-muted-foreground ml-1" />}
           </h2>

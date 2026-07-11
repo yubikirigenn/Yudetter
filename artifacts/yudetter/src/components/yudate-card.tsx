@@ -56,7 +56,7 @@ import {
 } from "./ui/tooltip";
 import { Crown, Trophy, Medal } from "lucide-react";
 
-export const VerifiedBadge = ({ isVerified }: { isVerified?: boolean }) => {
+export const VerifiedBadge = ({ isVerified, className }: { isVerified?: boolean; className?: string }) => {
   if (!isVerified) return null;
 
   return (
@@ -65,7 +65,7 @@ export const VerifiedBadge = ({ isVerified }: { isVerified?: boolean }) => {
         <img
           src="/verified.png"
           alt="公式マーク"
-          className="w-4 h-4 shrink-0 select-none align-middle"
+          className={`shrink-0 select-none align-middle aspect-square object-contain ${className || "w-4 h-4"}`}
           draggable={false}
         />
       </TooltipTrigger>
