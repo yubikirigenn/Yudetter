@@ -433,4 +433,16 @@ router.get("/users/me/blocks", requireAuth, async (req, res): Promise<void> => {
   res.json({ items: profiles, nextCursor: null });
 });
 
+// DELETE /users/me - アカウント削除 (退会)
+router.delete("/users/me", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const userId = req.dbUserId!;
+    await db.delete(usersTable).where(eq(usersTable.id, userId));
+    res.json({ success: true });
+  } catch (e) {
+    console.error("Failed to delete account", e);
+    res.status(500).json({ error: "アカウントの削除に失敗しました" });
+  }
+});
+
 export default router;

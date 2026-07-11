@@ -354,6 +354,9 @@ export default function YudateCard({
 
   const handleReport = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!window.confirm("このユデートを通報しますか？\n通報は管理者に送信され、確認が行われます。")) {
+      return;
+    }
     try {
       const res = await fetch(`/api/yudates/${yudate.id}/report`, { method: "POST" });
       if (!res.ok) throw new Error();

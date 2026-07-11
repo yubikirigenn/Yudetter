@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "@/lib/auth-client";
+import { useSession, signOut } from "@/lib/auth-client";
 import { useGetMe as useGetUserMe, useUpdateMe as useUpdateUserMe } from "@workspace/api-client-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Image as ImageIcon, Lock, ShieldAlert, UserX } from "lucide-react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import ImageCropper from "@/components/image-cropper";
 import { useToast } from "@/hooks/use-toast";
 
@@ -45,6 +45,26 @@ export default function SettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users/me/blocks"] });
+    }
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/users/me", { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete account");
+      return res.json();
+    },
+    onSuccess: async () => {
+      toast({ title: "アカウントを削除しました" });
+      try {
+        await signOut();
+      } catch (e) {
+        console.error("Sign out error during account deletion", e);
+      }
+      window.location.href = "/sign-in";
+    },
+    onError: (e: any) => {
+      toast({ title: "アカウントの削除に失敗しました", variant: "destructive" });
     }
   });
 
@@ -222,6 +242,44 @@ export default function SettingsPage() {
           ) : (
             <div className="text-center p-4 text-muted-foreground text-sm">ブロックしているユーザーはいません</div>
           )}
+        </section>
+
+        {/* その他 */}
+        <section className="space-y-4 pt-8 border-t border-border/50">
+          <h2 className="text-lg font-bold">その他</h2>
+          <div className="space-y-3">
+            <Link href="/terms" className="flex items-center justify-between p-4 bg-secondary/40 hover:bg-secondary/60 rounded-xl font-bold transition-all text-sm">
+              <span>利用規約</span>
+              <span className="text-muted-foreground">→</span>
+            </Link>
+          </div>
+        </section>
+
+        {/* 危険ゾーン */}
+        <section className="space-y-4 pt-8 border-t border-border/50">
+          <h2 className="text-lg font-bold text-destructive flex items-center gap-2">
+            <UserX className="w-5 h-5" /> 危険ゾーン
+          </h2>
+          <div className="p-4 bg-destructive/10 rounded-xl border border-destructive/20 flex flex-col gap-4">
+            <div>
+              <div className="font-bold text-destructive text-sm">アカウントの削除</div>
+              <div className="text-xs text-muted-foreground mt-1 leading-normal">
+                アカウントを削除すると、これまでのすべてのユデート、フォロワー関係、YD残高などが完全に消去され、復旧することはできません。
+              </div>
+            </div>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (window.confirm("本当にアカウントを削除しますか？\nこの操作は取り消せません。")) {
+                  deleteAccountMutation.mutate();
+                }
+              }}
+              disabled={deleteAccountMutation.isPending}
+              className="w-full font-bold h-11"
+            >
+              {deleteAccountMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "アカウントを削除する"}
+            </Button>
+          </div>
         </section>
       </div>
 
