@@ -76,7 +76,7 @@ export const VerifiedBadge = ({
     displayName.trim().endsWith("］")
   ) : false;
 
-  const marginClass = isParenthesis ? "-ml-2.5" : "-ml-0.5";
+  const marginClass = isParenthesis ? "-ml-2.5" : "-ml-1";
 
   return (
     <Tooltip>
