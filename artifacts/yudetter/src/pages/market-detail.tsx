@@ -25,6 +25,7 @@ import {
   X,
   Music,
   Gamepad2,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -388,6 +389,26 @@ export default function MarketDetailPage() {
               <span className="text-[10px] text-muted-foreground">※ 購入前に試聴できます</span>
             </div>
           </div>
+        ) : item.itemType === "text" ? (
+          <div className="flex flex-col items-center justify-center p-6 text-center gap-3 w-full h-full relative">
+            {item.thumbnailUrl && (
+              <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover blur-sm opacity-25" />
+            )}
+            <div className="z-10 flex flex-col items-center gap-2">
+              {item.thumbnailUrl ? (
+                <img src={item.thumbnailUrl} alt={item.title} className="w-20 h-20 object-cover rounded-xl shadow-md border mb-1" />
+              ) : (
+                <FileText className="w-12 h-12 text-primary animate-pulse" />
+              )}
+              <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">TEXT FILE (.TXT)</span>
+              <span className="text-xs text-muted-foreground max-w-xs truncate">{item.title}</span>
+              {item.isBought || isSeller ? (
+                <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 mt-1">購入済み / 出品者です</span>
+              ) : (
+                <span className="text-[10px] text-muted-foreground">※ 購入後にダウンロードして閲覧できます</span>
+              )}
+            </div>
+          </div>
         ) : item.itemType === "game" ? (
           <div className="flex flex-col items-center justify-center p-6 text-center gap-2 w-full h-full relative">
             {item.thumbnailUrl && (
@@ -621,7 +642,7 @@ export default function MarketDetailPage() {
         )}
 
         {/* 購入済み商品のダウンロードボタン (画像・音声) */}
-        {item.isBought && (item.itemType === "image" || item.itemType === "audio") && (
+        {item.isBought && (item.itemType === "image" || item.itemType === "audio" || item.itemType === "text") && (
           <Button
             type="button"
             onClick={() => handleDownload(item.itemData, item.title)}
@@ -692,7 +713,7 @@ export default function MarketDetailPage() {
                   : `「${item.title}」の購入が完了しました。`}
               </p>
 
-              {(!isAuction || Number(bidAmount) === item.buyoutPrice) && (item.itemType === "image" || item.itemType === "audio") ? (
+              {(!isAuction || Number(bidAmount) === item.buyoutPrice) && (item.itemType === "image" || item.itemType === "audio" || item.itemType === "text") ? (
                 <div className="flex flex-col gap-2 w-full mt-4">
                   <p className="text-xs text-amber-700 font-medium font-rounded">ファイルを今すぐダウンロードしますか？</p>
                   <div className="flex gap-2.5 w-full mt-1">

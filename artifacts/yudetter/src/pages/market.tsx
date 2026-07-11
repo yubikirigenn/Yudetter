@@ -459,6 +459,7 @@ export default function MarketPage() {
                   <SelectItem value="audio">音声 (ファイル選択アップロード)</SelectItem>
                   <SelectItem value="game">作成したゲーム</SelectItem>
                   <SelectItem value="user_id">ユーザーID (現在のIDを出品)</SelectItem>
+                  <SelectItem value="text">テキストファイル (.txt)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -551,6 +552,31 @@ export default function MarketPage() {
                 <div className="mt-2 border border-border/60 rounded-xl overflow-hidden max-w-xs relative bg-muted/20">
                   <img src={itemData} alt="プレビュー" className="max-h-32 object-contain mx-auto" />
                   <span className="text-[10px] text-muted-foreground p-1 block truncate border-t">{itemData}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {itemType === "text" && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-bold text-foreground">テキストファイル (.txt)</label>
+              <Input
+                type="file"
+                accept=".txt,text/plain"
+                onChange={(e) => handleFileUpload(e, "media")}
+                disabled={isUploading}
+                required={!itemData}
+                className="cursor-pointer"
+              />
+              {isUploading && (
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> アップロード中...
+                </div>
+              )}
+              {itemData && (
+                <div className="mt-2 border border-border/60 rounded-xl p-3 bg-muted/20 text-xs font-mono break-all max-h-32 overflow-y-auto">
+                  <span className="font-bold block text-muted-foreground mb-1">アップロード完了:</span>
+                  {itemData}
                 </div>
               )}
             </div>
@@ -754,7 +780,7 @@ export default function MarketPage() {
                             遊ぶ
                           </Button>
                         )}
-                        {(item.itemType === "image" || item.itemType === "audio") && (
+                        {(item.itemType === "image" || item.itemType === "audio" || item.itemType === "text") && (
                           <Button
                             size="sm"
                             variant="outline"

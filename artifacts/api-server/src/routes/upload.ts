@@ -15,16 +15,16 @@ const upload = multer({
     fileSize: 20 * 1024 * 1024, // 20MB limit
   },
   fileFilter: (_req, file, cb) => {
-    const allowedExtensions = /^\.(jpg|jpeg|png|gif|webp|mov|mp4|webm|mp3|wav|m4a|ogg|aac)$/i;
-    const allowedMimeTypes = /^(image|video|audio)\//i;
+    const allowedExtensions = /^\.(jpg|jpeg|png|gif|webp|mov|mp4|webm|mp3|wav|m4a|ogg|aac|txt)$/i;
+    const allowedMimeTypes = /^(image|video|audio|text)\//i;
 
     const ext = path.extname(file.originalname).toLowerCase();
     const mime = file.mimetype.toLowerCase();
 
-    if (allowedExtensions.test(ext) || allowedMimeTypes.test(mime) || mime === "application/octet-stream") {
+    if (allowedExtensions.test(ext) || allowedMimeTypes.test(mime) || mime === "application/octet-stream" || mime === "text/plain") {
       cb(null, true);
     } else {
-      cb(new Error("対応していないファイル形式です（画像、動画、音声のみ対応）。"));
+      cb(new Error("対応していないファイル形式です（画像、動画、音声、テキストのみ対応）。"));
     }
   },
 });
@@ -100,8 +100,9 @@ router.post("/upload", requireAuth, upload.single("file"), async (req, res): Pro
             ".m4a": "audio/x-m4a",
             ".ogg": "audio/ogg",
             ".aac": "audio/aac",
+            ".txt": "text/plain",
           };
-          mimeType = mimeMap[ext] || "image/jpeg";
+          mimeType = mimeMap[ext] || "text/plain";
         }
 
         logger.info({ filename, bucket: supabaseBucket, mimeType }, "Uploading to Supabase Storage...");
