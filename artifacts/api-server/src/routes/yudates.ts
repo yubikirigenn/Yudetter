@@ -496,6 +496,22 @@ router.post("/yudates/:id/reactions", requireAuth, async (req, res): Promise<voi
       yudateId: id,
       emoji,
     });
+
+    // Notify author of the yudate (if not reacting to own post)
+    if (yudate.authorId !== req.dbUserId) {
+      await db.insert(notificationsTable).values({
+        userId: yudate.authorId,
+        type: "reaction",
+        actorId: req.dbUserId!,
+        yudateId: id,
+      }).onConflictDoNothing();
+
+      sseManager.notifyUser(yudate.authorId, {
+        type: "reaction",
+        actorId: req.dbUserId!,
+        yudateId: id,
+      });
+    }
   } catch {
     // Already reacted with this emoji — ignore
   }

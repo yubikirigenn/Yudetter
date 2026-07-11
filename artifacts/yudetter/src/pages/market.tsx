@@ -328,8 +328,11 @@ export default function MarketPage() {
               {items
                 .filter((item) => item.status === "selling")
                 .map((item) => {
-                  const formattedPrice = item.price.toLocaleString();
                   const isAuction = item.saleType === "auction";
+                  const currentPrice = (isAuction && item.highestBid && item.highestBid > 0)
+                    ? item.highestBid
+                    : item.price;
+                  const formattedPrice = currentPrice.toLocaleString();
                   return (
                     <div
                       key={item.id}
@@ -384,8 +387,11 @@ export default function MarketPage() {
                       </div>
 
                       <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/20">
-                        <span className="font-rounded font-black text-sm text-amber-600">
-                          {formattedPrice} <span className="text-[10px]">YD</span>
+                        <span className="font-rounded font-black text-sm text-amber-600 flex items-center gap-1 flex-wrap">
+                          {isAuction && item.highestBid && item.highestBid > 0 ? (
+                            <span className="text-[9px] text-purple-600 font-bold bg-purple-50 border border-purple-100 px-1 py-0.5 rounded leading-none">現在値</span>
+                          ) : null}
+                          <span>{formattedPrice} <span className="text-[10px]">YD</span></span>
                         </span>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-0.5">

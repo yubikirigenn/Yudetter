@@ -135,6 +135,64 @@ export default function MarketDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editBuyoutPrice, setEditBuyoutPrice] = useState("");
+  const [isEditingSubmit, setIsEditingSubmit] = useState(false);
+
+  const openEditModal = () => {
+    if (!item) return;
+    setEditTitle(item.title);
+    setEditDescription(item.description || "");
+    setEditPrice(item.price.toString());
+    setEditBuyoutPrice(item.buyoutPrice ? item.buyoutPrice.toString() : "");
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTitle.trim() || !item) return;
+
+    setIsEditingSubmit(true);
+    try {
+      const priceNum = parseInt(editPrice.replace(/,/g, ""), 10);
+      const buyoutPriceNum = editBuyoutPrice ? parseInt(editBuyoutPrice.replace(/,/g, ""), 10) : null;
+
+      const body: any = {
+        title: editTitle,
+        description: editDescription,
+      };
+
+      const hasBids = item.saleType === "auction" && item.highestBidderId !== null;
+      if (!hasBids) {
+        body.price = priceNum;
+        body.buyoutPrice = buyoutPriceNum;
+      }
+
+      const res = await fetch(`/api/market/items/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "編集に失敗しました");
+      }
+
+      toast({ title: "更新完了", description: "出品情報を更新しました" });
+      setIsEditDialogOpen(false);
+      refetchItem();
+    } catch (e: any) {
+      console.error(e);
+      toast({ variant: "destructive", title: "エラー", description: e.message || "出品の編集に失敗しました" });
+    } finally {
+      setIsEditingSubmit(false);
+    }
+  };
+
   if (isNaN(id)) {
     return <div className="p-4 text-center text-destructive">無効な商品IDです</div>;
   }
@@ -463,6 +521,15 @@ export default function MarketDetailPage() {
             <div className="text-center p-3.5 bg-secondary/20 text-muted-foreground rounded-2xl text-xs font-semibold">
               あなたの出品した商品です（購入・入札できません）
             </div>
+            {item.status === "selling" && (
+              <Button
+                variant="outline"
+                onClick={openEditModal}
+                className="w-full h-11 rounded-full font-bold text-sm border-primary text-primary hover:bg-primary/5 active:scale-98 transition-all"
+              >
+                出品情報を編集する
+              </Button>
+            )}
             <Button
               variant="destructive"
               onClick={() => setIsDeleteDialogOpen(true)}
@@ -785,6 +852,91 @@ export default function MarketDetailPage() {
               {isSharingToTimeline ? <Loader2 className="w-4 h-4 animate-spin" /> : "投稿する"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 編集用 Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="rounded-3xl p-6 bg-background border border-border/40 max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="font-rounded font-bold text-base">出品情報を編集する</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditItem} className="flex flex-col gap-4 mt-2">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-muted-foreground">タイトル</label>
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                required
+                maxLength={100}
+                className="rounded-xl border-border/60 text-sm h-10 focus-visible:ring-primary/30"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-bold text-muted-foreground">説明文</label>
+              <Textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                maxLength={500}
+                className="rounded-xl border-border/60 text-sm min-h-[100px] focus-visible:ring-primary/30"
+              />
+            </div>
+            
+            {item?.saleType === "auction" && item?.highestBidderId !== null ? (
+              <div className="text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-100 p-3 rounded-2xl">
+                既に入札されているため、開始価格および即決価格は編集できません。
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-muted-foreground">
+                    {item?.saleType === "auction" ? "開始価格" : "販売価格"} (YD)
+                  </label>
+                  <Input
+                    type="number"
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
+                    required
+                    min={1}
+                    max={999999999}
+                    className="rounded-xl border-border/60 text-sm h-10 focus-visible:ring-primary/30"
+                  />
+                </div>
+                {item?.saleType === "auction" && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-muted-foreground">即決価格 (YD, 任意)</label>
+                    <Input
+                      type="number"
+                      value={editBuyoutPrice}
+                      onChange={(e) => setEditBuyoutPrice(e.target.value)}
+                      min={editPrice ? Number(editPrice) + 1 : 2}
+                      max={999999999}
+                      className="rounded-xl border-border/60 text-sm h-10 focus-visible:ring-primary/30"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter className="mt-4 flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+                className="flex-1 rounded-full font-bold h-10 text-xs border-border/60"
+              >
+                キャンセル
+              </Button>
+              <Button
+                type="submit"
+                disabled={isEditingSubmit || !editTitle.trim()}
+                className="flex-1 rounded-full font-bold h-10 text-xs"
+              >
+                {isEditingSubmit ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+                保存する
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 

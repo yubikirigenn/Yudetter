@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs";
 import { requireAuth } from "../lib/auth";
 import { logger } from "../lib/logger";
+import sharp from "sharp";
 
 const router = Router();
 
@@ -36,7 +37,39 @@ router.post("/upload", requireAuth, upload.single("file"), async (req, res): Pro
     }
 
     const file = req.file;
-    const ext = path.extname(file.originalname).toLowerCase() || "";
+    let ext = path.extname(file.originalname).toLowerCase() || "";
+    let buffer = file.buffer;
+    let mimeType = file.mimetype;
+
+    // Detect if upload is a compressible image (JPEG, PNG, WebP) but exclude animated GIFs and SVGs
+    const isCompressibleImage =
+      mimeType.startsWith("image/") &&
+      !mimeType.includes("gif") &&
+      !mimeType.includes("svg") &&
+      !mimeType.includes("icon");
+
+    if (isCompressibleImage) {
+      try {
+        logger.info({ filename: file.originalname, originalSize: buffer.length }, "Compressing image using sharp...");
+        let pipeline = sharp(buffer);
+        const metadata = await pipeline.metadata();
+
+        // Resize down to a maximum width of 1200px (retaining aspect ratio) if larger
+        if (metadata.width && metadata.width > 1200) {
+          pipeline = pipeline.resize({ width: 1200, withoutEnlargement: true });
+        }
+
+        // Convert to WebP format with quality 75%
+        buffer = await pipeline.webp({ quality: 75 }).toBuffer();
+        ext = ".webp";
+        mimeType = "image/webp";
+
+        logger.info({ compressedSize: buffer.length }, "Image compressed successfully to WebP.");
+      } catch (sharpErr) {
+        logger.error({ err: sharpErr }, "Failed to compress image with sharp, fallback to original buffer");
+      }
+    }
+
     const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}${ext}`;
 
     const supabaseUrl = process.env.SUPABASE_URL;
@@ -52,7 +85,6 @@ router.post("/upload", requireAuth, upload.single("file"), async (req, res): Pro
         const cleanUrl = supabaseUrl.replace(/\/$/, "");
         const uploadUrl = `${cleanUrl}/storage/v1/object/${supabaseBucket}/${filename}`;
 
-        let mimeType = file.mimetype;
         if (!mimeType || mimeType === "application/octet-stream" || mimeType === "blob") {
           const mimeMap: Record<string, string> = {
             ".jpg": "image/jpeg",
@@ -81,7 +113,7 @@ router.post("/upload", requireAuth, upload.single("file"), async (req, res): Pro
             "Content-Type": mimeType,
             "x-upsert": "true",
           },
-          body: file.buffer,
+          body: buffer,
         });
 
         if (uploadResponse.ok) {
@@ -110,7 +142,7 @@ router.post("/upload", requireAuth, upload.single("file"), async (req, res): Pro
     }
 
     const filePath = path.join(uploadDir, filename);
-    fs.writeFileSync(filePath, file.buffer);
+    fs.writeFileSync(filePath, buffer);
 
     // Return the relative URL from host root
     const localUrl = `/uploads/${filename}`;

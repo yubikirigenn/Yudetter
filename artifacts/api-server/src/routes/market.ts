@@ -935,6 +935,91 @@ router.post("/market/items/:id/claim-id", requireAuth, async (req, res): Promise
   }
 });
 
+// PUT /market/items/:id - 出品商品の編集
+router.put("/market/items/:id", requireAuth, async (req, res): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ error: "無効な商品IDです" });
+      return;
+    }
+
+    const { title, description, price, buyoutPrice } = req.body;
+
+    if (!title) {
+      res.status(400).json({ error: "タイトルは必須です" });
+      return;
+    }
+
+    const [item] = await db
+      .select()
+      .from(marketItemsTable)
+      .where(eq(marketItemsTable.id, id))
+      .limit(1);
+
+    if (!item) {
+      res.status(404).json({ error: "商品が見つかりません" });
+      return;
+    }
+
+    if (item.sellerId !== req.dbUserId) {
+      res.status(403).json({ error: "自分の出品した商品以外は編集できません" });
+      return;
+    }
+
+    if (item.status !== "selling") {
+      res.status(400).json({ error: "販売中以外の商品は編集できません" });
+      return;
+    }
+
+    const updateData: any = {
+      title,
+      description,
+      updatedAt: new Date(),
+    };
+
+    const isAuction = item.saleType === "auction";
+    const hasBids = isAuction && item.highestBidderId !== null;
+
+    if (hasBids) {
+      if (price !== undefined && price !== item.price) {
+        res.status(400).json({ error: "既に入札があるため、開始価格を変更することはできません" });
+        return;
+      }
+      if (buyoutPrice !== undefined && buyoutPrice !== item.buyoutPrice) {
+        res.status(400).json({ error: "既に入札があるため、即決価格を変更することはできません" });
+        return;
+      }
+    } else {
+      if (price !== undefined) {
+        if (price < 1 || price > 999999999) {
+          res.status(400).json({ error: "販売価格は 1YD から 999,999,999YD の範囲である必要があります" });
+          return;
+        }
+        updateData.price = price;
+      }
+      if (buyoutPrice !== undefined) {
+        if (buyoutPrice !== null && buyoutPrice <= (price !== undefined ? price : item.price)) {
+          res.status(400).json({ error: "即決価格は販売価格より高い必要があります" });
+          return;
+        }
+        updateData.buyoutPrice = buyoutPrice;
+      }
+    }
+
+    const [updatedItem] = await db
+      .update(marketItemsTable)
+      .set(updateData)
+      .where(eq(marketItemsTable.id, id))
+      .returning();
+
+    res.json(updatedItem);
+  } catch (e) {
+    console.error("Failed to edit market item", e);
+    res.status(500).json({ error: "出品商品の編集に失敗しました" });
+  }
+});
+
 // DELETE /market/items/:id - 出品商品の削除
 router.delete("/market/items/:id", requireAuth, async (req, res): Promise<void> => {
   try {

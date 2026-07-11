@@ -1,5 +1,5 @@
 import { useGetNotifications, useMarkNotificationsRead, useGetFollowRequests, useApproveFollowRequest, useRejectFollowRequest } from "@workspace/api-client-react";
-import { Loader2, Heart, Repeat2, User, MessageCircle, Quote, Bell, ShoppingBag, Coins } from "lucide-react";
+import { Loader2, Heart, Repeat2, User, MessageCircle, Quote, Bell, ShoppingBag, Coins, SmilePlus } from "lucide-react";
 import { useEffect } from "react";
 import { Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -59,6 +59,7 @@ export default function NotificationsPage() {
       case 'quote': return <Quote className="w-7 h-7 text-primary" />;
       case 'market_sell': return <ShoppingBag className="w-7 h-7 text-emerald-500 fill-emerald-500" />;
       case 'super_yudate': return <Coins className="w-7 h-7 text-amber-500 fill-amber-500" />;
+      case 'reaction': return <SmilePlus className="w-7 h-7 text-amber-500 fill-amber-500" />;
       default: return <Bell className="w-7 h-7 text-primary" />;
     }
   };
@@ -86,6 +87,7 @@ export default function NotificationsPage() {
           </>
         );
       }
+      case 'reaction': return <><span className="font-bold">{actorName}</span>さんがあなたのユデートにリアクションしました</>;
       default: return "";
     }
   };
