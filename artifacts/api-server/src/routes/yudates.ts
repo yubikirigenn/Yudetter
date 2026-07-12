@@ -253,7 +253,7 @@ router.post("/yudates/:id/like", requireAuth, async (req, res): Promise<void> =>
 
       sseManager.notifyUser(yudate.authorId, {
         type: "like",
-        actorName: req.user?.name || "誰か",
+        actorName: req.user?.displayName || req.user?.name || "誰か",
         actionMessage: "があなたのユデートをいいねしました",
       });
     }
@@ -305,7 +305,7 @@ router.post("/yudates/:id/reyudate", requireAuth, async (req, res): Promise<void
 
       sseManager.notifyUser(yudate.authorId, {
         type: "reyudate",
-        actorName: req.user?.name || "誰か",
+        actorName: req.user?.displayName || req.user?.name || "誰か",
         actionMessage: "があなたのユデートをリユデートしました",
       });
     }
@@ -464,7 +464,7 @@ router.post("/yudates/:id/replies", requireAuth, async (req, res): Promise<void>
 
     sseManager.notifyUser(original.authorId, {
       type: isSuper ? "super_yudate" : "reply",
-      actorName: req.user?.name || "誰か",
+      actorName: req.user?.displayName || req.user?.name || "誰か",
       actionMessage: isSuper 
         ? `があなたに ${superAmount} YD のスーパーユデートを送信しました`
         : "があなたのユデートに返信しました",

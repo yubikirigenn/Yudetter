@@ -267,7 +267,7 @@ router.post("/users/:username/follow", requireAuth, async (req, res): Promise<vo
 
     sseManager.notifyUser(target.id, {
       type: "follow",
-      actorName: req.user?.name || "誰か",
+      actorName: req.user?.displayName || req.user?.name || "誰か",
       actionMessage,
     });
   } catch {

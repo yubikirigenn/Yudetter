@@ -604,7 +604,7 @@ router.post("/market/items/:id/purchase", requireAuth, async (req, res): Promise
 
         sseManager.notifyUser(item.sellerId, {
           type: "market_sell",
-          actorName: req.user?.name || "誰か",
+          actorName: req.user?.displayName || req.user?.name || "誰か",
           actionMessage: `があなたの商品「${item.title}」を購入しました`,
         });
       } catch (err) {
@@ -718,7 +718,7 @@ router.post("/market/items/:id/purchase", requireAuth, async (req, res): Promise
 
           sseManager.notifyUser(item.sellerId, {
             type: "market_sell",
-            actorName: req.user?.name || "誰か",
+            actorName: req.user?.displayName || req.user?.name || "誰か",
             actionMessage: `があなたの商品「${item.title}」を即決価格で購入しました`,
           });
         } catch (err) {
