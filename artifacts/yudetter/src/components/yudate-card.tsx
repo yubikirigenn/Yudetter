@@ -192,8 +192,7 @@ const REACTION_EMOJIS: { emoji: string; label: string }[] = [
 
 /** Renders markdown + KaTeX safely */
 function MarkdownContent({ content, className }: { content: string; className?: string }) {
-  // Convert plain newlines to markdown-compatible newlines (two spaces + newline)
-  let formattedContent = (content || "").replace(/\n/g, "  \n");
+  let formattedContent = content || "";
 
   // 1. Auto-link hashtags (e.g. #tag -> [#tag](/explore?q=%23tag))
   formattedContent = formattedContent.replace(
@@ -212,10 +211,11 @@ function MarkdownContent({ content, className }: { content: string; className?: 
   );
 
   return (
-    <div className={`prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap ${className || ''}`}>
+    <div className={`prose prose-sm dark:prose-invert max-w-none ${className || ''}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
+        breaks
         components={{
           // Use wouter Link for app-internal routing (hashtags/mentions), normal a tag for external
           a: ({ children, href }) => {
