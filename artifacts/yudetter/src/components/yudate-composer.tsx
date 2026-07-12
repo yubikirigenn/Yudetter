@@ -69,6 +69,51 @@ export default function YudateComposer({
     e.target.style.height = `${e.target.scrollHeight}px`;
   };
 
+  // クリップボードから画像をペーストしてアップロード
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        setIsUploading(true);
+        try {
+          const uploadFile = await imageCompression(file, {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+          });
+
+          const formData = new FormData();
+          formData.append("file", uploadFile, file.name || "pasted-image.png");
+
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || "アップロードに失敗しました");
+          }
+
+          const data = await res.json();
+          setImageUrl(data.url);
+          toast({ title: "画像を貼り付けました" });
+        } catch (err: any) {
+          toast({ title: err.message || "アップロードに失敗しました", variant: "destructive" });
+        } finally {
+          setIsUploading(false);
+        }
+        break;
+      }
+    }
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -211,6 +256,7 @@ export default function YudateComposer({
           ref={textareaRef}
           value={content}
           onChange={handleInput}
+          onPaste={handlePaste}
           placeholder={placeholder}
           className="w-full bg-transparent text-xl outline-none resize-none placeholder:text-muted-foreground mt-2 mb-2 min-h-[120px]"
           maxLength={300}
