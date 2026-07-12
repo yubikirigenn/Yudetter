@@ -279,6 +279,7 @@ export interface MarketItem {
   likeCount: number;
   commentCount: number;
   isLiked: boolean;
+  hideContent: boolean;
 }
 
 export interface MarketComment {
@@ -416,6 +417,7 @@ export type CreateMarketItemBody = {
   itemData: string;
   price: number;
   saleType: CreateMarketItemBodySaleType;
+  hideContent?: boolean;
   auctionDurationDays?: number;
   thumbnailUrl?: string;
   buyoutPrice?: number;
