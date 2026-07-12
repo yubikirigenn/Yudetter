@@ -1653,6 +1653,7 @@ export const GetMarketItemsResponseItem = zod.object({
   "saleType": zod.enum(['normal', 'auction']),
   "status": zod.enum(['selling', 'sold', 'reserved', 'completed']),
   "auctionEndAt": zod.coerce.date().nullish(),
+  "hideContent": zod.boolean(),
   "highestBid": zod.number().nullish(),
   "highestBidder": zod.union([zod.object({
   "setupComplete": zod.boolean(),
@@ -1702,6 +1703,7 @@ export const CreateMarketItemBody = zod.object({
   "itemData": zod.string(),
   "price": zod.number(),
   "saleType": zod.enum(['normal', 'auction']),
+  "hideContent": zod.boolean().optional(),
   "auctionDurationDays": zod.number().optional(),
   "thumbnailUrl": zod.string().optional(),
   "buyoutPrice": zod.number().optional()
@@ -1774,6 +1776,7 @@ export const CreateMarketItemResponse = zod.object({
   "saleType": zod.enum(['normal', 'auction']),
   "status": zod.enum(['selling', 'sold', 'reserved', 'completed']),
   "auctionEndAt": zod.coerce.date().nullish(),
+  "hideContent": zod.boolean(),
   "highestBid": zod.number().nullish(),
   "highestBidder": zod.union([zod.object({
   "setupComplete": zod.boolean(),
@@ -1886,6 +1889,7 @@ export const GetMarketItemResponse = zod.object({
   "saleType": zod.enum(['normal', 'auction']),
   "status": zod.enum(['selling', 'sold', 'reserved', 'completed']),
   "auctionEndAt": zod.coerce.date().nullish(),
+  "hideContent": zod.boolean(),
   "highestBid": zod.number().nullish(),
   "highestBidder": zod.union([zod.object({
   "setupComplete": zod.boolean(),

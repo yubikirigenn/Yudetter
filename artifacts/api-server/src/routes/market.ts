@@ -186,6 +186,7 @@ async function buildMarketItemResponse(item: any, viewerUserId?: number) {
     buyoutPrice: item.buyoutPrice,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
+    hideContent: item.hideContent ?? false,
     likeCount: likes?.count ?? 0,
     commentCount: comments?.count ?? 0,
     isLiked: Array.isArray(likeCheck) && likeCheck.length > 0,
@@ -304,6 +305,7 @@ async function buildMarketItemsResponseBulk(items: any[], viewerUserId?: number)
       buyoutPrice: item.buyoutPrice,
       createdAt: item.createdAt.toISOString(),
       updatedAt: item.updatedAt.toISOString(),
+      hideContent: item.hideContent ?? false,
       likeCount: likeCountsMap.get(item.id) ?? 0,
       commentCount: commentCountsMap.get(item.id) ?? 0,
       isLiked: userLikedMap.has(item.id),
@@ -357,7 +359,7 @@ router.get("/market/items", optionalAuth, async (req, res): Promise<void> => {
 // POST /market/items - 新規出品
 router.post("/market/items", requireAuth, async (req, res): Promise<void> => {
   try {
-    const { title, description, itemType, itemData, price, saleType: rawSaleType, auctionDurationDays, thumbnailUrl, buyoutPrice, stock } = req.body;
+    const { title, description, itemType, itemData, price, saleType: rawSaleType, auctionDurationDays, thumbnailUrl, buyoutPrice, stock, hideContent } = req.body;
 
     if (!title || !itemType || !itemData || price === undefined || !rawSaleType) {
       res.status(400).json({ error: "必須項目が不足しています" });
@@ -421,6 +423,7 @@ router.post("/market/items", requireAuth, async (req, res): Promise<void> => {
         stock: finalStock,
         auctionEndAt,
         highestBid: saleType === "auction" ? price : null,
+        hideContent: hideContent === true,
       })
       .returning();
 
@@ -944,7 +947,7 @@ router.put("/market/items/:id", requireAuth, async (req, res): Promise<void> => 
       return;
     }
 
-    const { title, description, price, buyoutPrice } = req.body;
+    const { title, description, price, buyoutPrice, hideContent } = req.body;
 
     if (!title) {
       res.status(400).json({ error: "タイトルは必須です" });
@@ -977,6 +980,10 @@ router.put("/market/items/:id", requireAuth, async (req, res): Promise<void> => 
       description,
       updatedAt: new Date(),
     };
+
+    if (hideContent !== undefined) {
+      updateData.hideContent = hideContent === true;
+    }
 
     const isAuction = item.saleType === "auction";
     const hasBids = isAuction && item.highestBidderId !== null;

@@ -28,6 +28,7 @@ export const marketItemsTable = pgTable("market_items", {
   highestBid: integer("highest_bid"),
   highestBidderId: integer("highest_bidder_id").references(() => usersTable.id, { onDelete: "set null" }),
   buyoutPrice: integer("buyout_price"),
+  hideContent: boolean("hide_content").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

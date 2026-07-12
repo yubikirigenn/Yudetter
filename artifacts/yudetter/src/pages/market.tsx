@@ -6,9 +6,10 @@ import {
   useGetGames,
   useGetMe,
 } from "@workspace/api-client-react";
-import { Loader2, Plus, ShoppingBag, History, Tag, Heart, MessageSquare, ShieldAlert, Music } from "lucide-react";
+import { Loader2, Plus, ShoppingBag, History, Tag, Heart, MessageSquare, ShieldAlert, Music, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -123,6 +124,7 @@ export default function MarketPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [hideContent, setHideContent] = useState(false);
 
   // 自分の作成したゲーム一覧をフィルタリング
   const myGames = games.filter((g) => g.creator?.id === me?.id);
@@ -225,6 +227,7 @@ export default function MarketPage() {
           buyoutPrice: buyoutPriceNum,
           auctionDurationDays: saleType === "auction" ? parseInt(duration, 10) : undefined,
           stock: finalStockVal,
+          hideContent: hideContent || undefined,
         },
       });
 
@@ -240,6 +243,7 @@ export default function MarketPage() {
       setBuyoutPrice("");
       setStock("");
       setIsInfiniteStock(true);
+      setHideContent(false);
       refetchItems();
       setActiveTab("items");
     } catch (e: any) {
@@ -343,6 +347,13 @@ export default function MarketPage() {
                       <div className="relative aspect-video w-full bg-secondary/20 overflow-hidden flex items-center justify-center">
                         {item.thumbnailUrl ? (
                           <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
+                        ) : item.hideContent ? (
+                          <div className="flex flex-col items-center p-3 text-center gap-1.5">
+                            <Lock className="w-6 h-6 text-muted-foreground" />
+                            <span className="text-[10px] font-bold text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full uppercase">
+                              {item.itemType === "user_id" ? "USER ID" : item.itemType}
+                            </span>
+                          </div>
                         ) : item.itemType === "image" ? (
                           <MarketImagePreview 
                             src={item.itemData} 
@@ -672,6 +683,18 @@ export default function MarketPage() {
                 <span className="text-[10px] text-muted-foreground p-1 block truncate border-t">{thumbnailUrl}</span>
               </div>
             )}
+          </div>
+
+          {/* 中身を隠すトグル */}
+          <div className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-secondary/10">
+            <div className="flex items-center gap-3">
+              <Lock className="w-4 h-4 text-muted-foreground" />
+              <div className="flex flex-col">
+                <span className="text-sm font-bold text-foreground">中身を隠す</span>
+                <span className="text-[11px] text-muted-foreground">有効にするとサムネイル画像のみが表示されます</span>
+              </div>
+            </div>
+            <Switch checked={hideContent} onCheckedChange={setHideContent} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

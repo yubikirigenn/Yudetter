@@ -26,9 +26,11 @@ import {
   Music,
   Gamepad2,
   FileText,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -141,6 +143,7 @@ export default function MarketDetailPage() {
   const [editDescription, setEditDescription] = useState("");
   const [editPrice, setEditPrice] = useState("");
   const [editBuyoutPrice, setEditBuyoutPrice] = useState("");
+  const [editHideContent, setEditHideContent] = useState(false);
   const [isEditingSubmit, setIsEditingSubmit] = useState(false);
 
   const openEditModal = () => {
@@ -149,6 +152,7 @@ export default function MarketDetailPage() {
     setEditDescription(item.description || "");
     setEditPrice(item.price.toString());
     setEditBuyoutPrice(item.buyoutPrice ? item.buyoutPrice.toString() : "");
+    setEditHideContent(item.hideContent ?? false);
     setIsEditDialogOpen(true);
   };
 
@@ -164,6 +168,7 @@ export default function MarketDetailPage() {
       const body: any = {
         title: editTitle,
         description: editDescription,
+        hideContent: editHideContent,
       };
 
       const hasBids = item.saleType === "auction" && item.highestBidderId !== null;
@@ -367,7 +372,24 @@ export default function MarketDetailPage() {
 
       {/* アイテムプレビュー */}
       <div className="relative aspect-video w-full bg-secondary/15 rounded-2xl overflow-hidden border border-border/30 flex items-center justify-center">
-        {item.itemType === "image" ? (
+        {item.hideContent && !isSeller && !item.isBought ? (
+          /* 中身を隠した表示 */
+          <div className="flex flex-col items-center justify-center p-6 text-center gap-3 w-full h-full relative">
+            {item.thumbnailUrl && (
+              <img src={item.thumbnailUrl} alt={item.title} className="absolute inset-0 w-full h-full object-cover blur-md opacity-30" />
+            )}
+            <div className="z-10 flex flex-col items-center gap-2">
+              {item.thumbnailUrl ? (
+                <img src={item.thumbnailUrl} alt={item.title} className="w-20 h-20 object-cover rounded-xl shadow-md border mb-1" />
+              ) : null}
+              <Lock className="w-10 h-10 text-muted-foreground" />
+              <span className="text-xs font-bold text-muted-foreground bg-muted/50 px-3 py-1 rounded-full uppercase">
+                {item.itemType === "user_id" ? "USER ID" : item.itemType === "text" ? "TEXT FILE" : item.itemType}
+              </span>
+              <span className="text-xs text-muted-foreground">購入後にコンテンツを確認できます</span>
+            </div>
+          </div>
+        ) : item.itemType === "image" ? (
           <MarketImagePreview 
             src={item.itemData} 
             title={item.title} 
@@ -938,6 +960,18 @@ export default function MarketDetailPage() {
                 )}
               </div>
             )}
+
+            {/* 中身を隠すトグル */}
+            <div className="flex items-center justify-between p-3 rounded-xl border border-border/40 bg-secondary/10">
+              <div className="flex items-center gap-3">
+                <Lock className="w-4 h-4 text-muted-foreground" />
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-foreground">中身を隠す</span>
+                  <span className="text-[11px] text-muted-foreground">有効にするとサムネイル画像のみが表示されます</span>
+                </div>
+              </div>
+              <Switch checked={editHideContent} onCheckedChange={setEditHideContent} />
+            </div>
 
             <DialogFooter className="mt-4 flex gap-2">
               <Button
