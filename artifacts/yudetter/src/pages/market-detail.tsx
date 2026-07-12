@@ -372,7 +372,7 @@ export default function MarketDetailPage() {
 
       {/* アイテムプレビュー */}
       <div className="relative aspect-video w-full bg-secondary/15 rounded-2xl overflow-hidden border border-border/30 flex items-center justify-center">
-        {item.hideContent && !isSeller && !item.isBought ? (
+        {item.hideContent && !item.isBought ? (
           /* 中身を隠した表示 */
           <div className="flex flex-col items-center justify-center p-6 text-center gap-3 w-full h-full relative">
             {item.thumbnailUrl && (
