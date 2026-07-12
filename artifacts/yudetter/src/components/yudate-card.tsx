@@ -211,7 +211,7 @@ function MarkdownContent({ content, className }: { content: string; className?: 
   );
 
   return (
-    <div className={`prose prose-sm dark:prose-invert max-w-none ${className || ''}`}>
+    <div className={`prose prose-sm dark:prose-invert max-w-none prose-p:my-0 ${className || ''}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
