@@ -19,6 +19,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 
@@ -213,9 +214,8 @@ function MarkdownContent({ content, className }: { content: string; className?: 
   return (
     <div className={`prose prose-sm dark:prose-invert max-w-none prose-p:my-0 ${className || ''}`}>
       <ReactMarkdown
-        remarkPlugins={[remarkMath, remarkGfm]}
+        remarkPlugins={[remarkMath, remarkGfm, remarkBreaks]}
         rehypePlugins={[rehypeKatex]}
-        breaks
         components={{
           // Use wouter Link for app-internal routing (hashtags/mentions), normal a tag for external
           a: ({ children, href }) => {
