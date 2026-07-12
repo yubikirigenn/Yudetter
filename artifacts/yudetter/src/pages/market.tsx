@@ -111,7 +111,7 @@ export default function MarketPage() {
   // 出品フォームステート
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [itemType, setItemType] = useState<"image" | "audio" | "game" | "user_id">("image");
+  const [itemType, setItemType] = useState<"image" | "audio" | "game" | "user_id" | "text">("image");
   const [itemData, setItemData] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [selectedGameId, setSelectedGameId] = useState("");
