@@ -9,6 +9,9 @@ import { logger } from "./lib/logger";
 
 const app: Express = express();
 
+// メンテナンスモード判定
+const MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === "true";
+
 app.use(
   pinoHttp({
     logger,
@@ -33,6 +36,22 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// メンテナンスモード中は書き込み操作をすべてブロック
+app.use("/api", (req, res, next) => {
+  if (!MAINTENANCE_MODE) return next();
+
+  // GET と ヘルスチェックは許可
+  if (req.method === "GET" || req.path === "/health") return next();
+
+  // メンテナンス状態の確認エンドポイントは許可
+  if (req.path === "/maintenance") return next();
+
+  res.status(503).json({
+    error: "ただいまメンテナンス中です。しばらくお待ちください。",
+    maintenance: true,
+  });
+});
+
 // Better Auth ハンドラーをマウント
 app.use("/api/auth", toNodeHandler(auth));
 
@@ -42,6 +61,11 @@ app.use("/api", router);
 app.get("/.well-known/appspecific/com.chrome.devtools.json", (req, res) => {
   res.setHeader("Content-Security-Policy", "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;");
   res.json({});
+});
+
+// メンテナンス状態エンドポイント
+app.get("/api/maintenance", (req, res) => {
+  res.json({ maintenance: MAINTENANCE_MODE });
 });
 
 
