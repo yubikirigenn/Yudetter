@@ -36,6 +36,19 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// yudetter.com以外からアクセスされたら自動リダイレクト
+const PRODUCTION_DOMAIN = "yudetter.com";
+app.use((req, res, next) => {
+  const host = req.hostname || req.get("host") || "";
+  // APIリクエストはスキップ（CORSや認証が壊れるため）
+  if (req.path.startsWith("/api")) return next();
+  // 本番ドメイン以外ならリダイレクト
+  if (host && !host.endsWith(PRODUCTION_DOMAIN) && host !== "localhost") {
+    return res.redirect(301, `https://${PRODUCTION_DOMAIN}${req.originalUrl}`);
+  }
+  next();
+});
+
 // メンテナンスモード中は書き込み操作をすべてブロック
 app.use("/api", (req, res, next) => {
   if (!MAINTENANCE_MODE) return next();
